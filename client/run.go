@@ -63,11 +63,12 @@ func NewRunsClient(httpClient *http.HttpClient) *RunsClient {
 //
 // Example:
 //
-//	stream, cancel := client.Runs.Stream("my-thread", "my-assistant", map[string]interface{}{"text": "Hello, world!"}, schema.Command{Type: "message"}, schema.StreamModeAll, true, nil, schema.Config{}, nil, "", "", "", nil, schema.DisconnectModeCancel, schema.OnCompletionBehaviorDelete, "", schema.MultitaskStrategyReject, schema.IfNotExistsReject, 0)
-//	for part := range stream {
-//		fmt.Println(part)
-//	}
-//	cancel()
+//	 	ctx := context.Background()
+//		stream, cancel := client.Runs.Stream(ctx, "my-thread", "my-assistant", map[string]interface{}{"text": "Hello, world!"}, schema.Command{Type: "message"}, schema.StreamModeAll, true, nil, schema.Config{}, nil, "", "", "", nil, schema.DisconnectModeCancel, schema.OnCompletionBehaviorDelete, "", schema.MultitaskStrategyReject, schema.IfNotExistsReject, 0)
+//		for part := range stream {
+//			fmt.Println(part)
+//		}
+//		cancel()
 //
 // StreamPart(event="metadata", data={"run_id": "1ef4a9b8-d7da-679a-a45a-872054341df2"})
 //
@@ -176,7 +177,8 @@ func (c *RunsClient) Stream(
 //
 // ```go
 //
-//	run, err := client.Runs.Create("my-thread", "my-assistant", map[string]interface{}{"text": "Hello, world!"}, schema.Command{Type: "message"}, schema.StreamModeAll, true, nil, schema.Config{}, nil, "", "", "", nil, schema.MultitaskStrategyReject, schema.IfNotExistsReject, 0, "", schema.OnCompletionBehaviorDelete, 0)
+//	ctx := context.Background()
+//	run, err := client.Runs.Create(ctx, "my-thread", "my-assistant", map[string]interface{}{"text": "Hello, world!"}, schema.Command{Type: "message"}, schema.StreamModeAll, true, nil, schema.Config{}, nil, "", "", "", nil, schema.MultitaskStrategyReject, schema.IfNotExistsReject, 0, "", schema.OnCompletionBehaviorDelete, 0)
 //	if err != nil {
 //		fmt.Println(err)
 //	}
@@ -238,14 +240,14 @@ func (c *RunsClient) Create(
 	assistantID string,
 	input map[string]any,
 	command schema.Command,
-	streamMode schema.StreamMode,
+	streamMode any,
 	streamSubgraphs bool,
 	metadata map[string]any,
 	config schema.Config,
 	checkpoint schema.Checkpoint,
 	checkpointID string,
-	interruptBefore schema.All,
-	interruptAfter schema.All,
+	interruptBefore any,
+	interruptAfter any,
 	webhook string,
 	multitaskStrategy schema.MultitaskStrategy,
 	ifNotExists schema.IfNotExists,
@@ -307,6 +309,14 @@ func filterPayload(payload map[string]any) map[string]any {
 }
 
 // Create a batch of stateless background runs.
+//
+// Args:
+//
+//	payloads: The list of payloads to create runs with.
+//
+// Returns:
+//
+//	[]schema.Run: The list of created runs.
 func (c *RunsClient) CreateBatch(ctx context.Context, payloads []map[string]any) ([]schema.Run, error) {
 	filteredPayloads := make([]map[string]any, 0, len(payloads))
 	for _, payload := range payloads {
@@ -364,7 +374,8 @@ func (c *RunsClient) CreateBatch(ctx context.Context, payloads []map[string]any)
 //
 //	```go
 //
-//	result, err := client.Runs.Wait("my-thread", "my-assistant", map[string]interface{}{"text": "Hello, world!"}, schema.Command{Type: "message"}, nil, schema.Config{}, nil, "", "", "", nil, schema.DisconnectModeCancel, schema.OnCompletionBehaviorDelete, schema.MultitaskStrategyReject, schema.IfNotExistsReject, 0, true)
+//	ctx := context.Background()
+//	result, err := client.Runs.Wait(ctx, "my-thread", "my-assistant", map[string]interface{}{"text": "Hello, world!"}, schema.Command{Type: "message"}, nil, schema.Config{}, nil, "", "", "", nil, schema.DisconnectModeCancel, schema.OnCompletionBehaviorDelete, schema.MultitaskStrategyReject, schema.IfNotExistsReject, 0, true)
 //	if err != nil {
 //		fmt.Println(err)
 //	}
@@ -485,15 +496,16 @@ func (c *RunsClient) Wait(
 //
 // Example:
 //
-//	```go
+//		```go
 //
-//	runs, err := client.Runs.List("my-thread", 10, 0, nil)
-//	if err != nil {
-//		fmt.Println(err)
-//	}
-//	fmt.Println(runs)
+//	 ctx := context.Background()
+//		runs, err := client.Runs.List(ctx, "my-thread", 10, 0, nil)
+//		if err != nil {
+//			fmt.Println(err)
+//		}
+//		fmt.Println(runs)
 //
-//	```
+//		```
 func (c *RunsClient) List(ctx context.Context, threadID string, limit int, offset int, status *schema.RunStatus) ([]schema.Run, error) {
 	if limit <= 0 {
 		limit = 10
@@ -534,15 +546,16 @@ func (c *RunsClient) List(ctx context.Context, threadID string, limit int, offse
 //
 // Example:
 //
-//	```go
+//		```go
 //
-//	run, err := client.Runs.Get("my-thread", "my-run")
-//	if err != nil {
-//		fmt.Println(err)
-//	}
-//	fmt.Println(run)
+//	 	ctx := context.Background()
+//		run, err := client.Runs.Get(ctx, "my-thread", "my-run")
+//		if err != nil {
+//			fmt.Println(err)
+//		}
+//		fmt.Println(run)
 //
-//	```
+//		```
 func (c *RunsClient) Get(ctx context.Context, threadID string, runID string) (schema.Run, error) {
 	resp, err := c.http.Get(ctx, fmt.Sprintf("/threads/%s/runs/%s", threadID, runID), nil)
 	if err != nil {
@@ -575,7 +588,8 @@ func (c *RunsClient) Get(ctx context.Context, threadID string, runID string) (sc
 //
 //	```go
 //
-//	err := client.Runs.Cancel("my-thread", "my-run", false, schema.CancelActionInterrupt)
+//	ctx := context.Background()
+//	err := client.Runs.Cancel(ctx, "my-thread", "my-run", false, schema.CancelActionInterrupt)
 //	if err != nil {
 //		fmt.Println(err)
 //	}
@@ -620,7 +634,8 @@ func (c *RunsClient) Cancel(ctx context.Context, threadID string, runID string, 
 //
 // ```go
 //
-//	result, err := client.Runs.Wait("my-thread", "my-run")
+//	ctx := context.Background()
+//	result, err := client.Runs.Wait(ctx, "my-thread", "my-run")
 //	if err != nil {
 //		fmt.Println(err)
 //	}
@@ -660,7 +675,8 @@ func (c *RunsClient) Join(ctx context.Context, threadID string, runID string) (m
 //
 // ```go
 //
-//	stream, cancel := client.Runs.JoinStream("my-thread", "my-run", false)
+//	ctx := context.Background()
+//	stream, cancel := client.Runs.JoinStream(ctx, "my-thread", "my-run", false)
 //	for part := range stream {
 //		fmt.Println(part)
 //	}
@@ -708,7 +724,8 @@ func (c *RunsClient) JoinStream(ctx context.Context, threadID string, runID stri
 //
 //	```go
 //
-//	err := client.Runs.Delete("my-thread", "my-run")
+//	ctx := context.Background()
+//	err := client.Runs.Delete(ctx, "my-thread", "my-run")
 //	if err != nil {
 //		fmt.Println(err)
 //	}

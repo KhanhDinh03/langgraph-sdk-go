@@ -16,8 +16,8 @@ import (
 //
 // Example:
 //
-//	client := langgraph.GetClient()
-//	thread, err := client.threadsClient.Get("thread-id")
+//	ctx := context.Background()
+//	thread, err := client.threadsClient.Get(ctx, "thread-id")
 //	if err != nil {
 //		log.Fatalf("Failed to get thread: %v", err)
 //	}
@@ -44,7 +44,8 @@ func NewThreadsClient(httpClient *http.HttpClient) *ThreadsClient {
 //
 // ```go
 //
-//	thread, err := client.threadsClient.Get("thread-id")
+//	ctx := context.Background()
+//	thread, err := client.threadsClient.Get(ctx, "thread-id")
 //	if err != nil {
 //		fmt.Printf("Failed to get thread: %v", err)
 //	}
@@ -93,7 +94,8 @@ func (c *ThreadsClient) Get(ctx context.Context, threadID string) (schema.Thread
 //
 // ```go
 //
-//	thread, err := client.threadsClient.Create(nil, "", "")
+//	ctx := context.Background()
+//	thread, err := client.threadsClient.Create(ctx, nil, "", "")
 //	if err != nil {
 //		fmt.Printf("Failed to create thread: %v", err)
 //	}
@@ -147,7 +149,8 @@ func (c *ThreadsClient) Create(ctx context.Context, metadata schema.Json, thread
 //
 // ```go
 //
-//	thread, err := client.threadsClient.Update("thread-id", nil)
+//	ctx := context.Background()
+//	thread, err := client.threadsClient.Update(ctx, "thread-id", {"number":1})
 //	if err != nil {
 //		fmt.Printf("Failed to update thread: %v", err)
 //	}
@@ -193,7 +196,8 @@ func (c *ThreadsClient) Update(ctx context.Context, threadID string, metadata ma
 //
 // ```go
 //
-//	err := client.threadsClient.Delete("thread-id")
+//	ctx := context.Background()
+//	err := client.threadsClient.Delete(ctx, "thread-id")
 //	if err != nil {
 //		fmt.Printf("Failed to delete thread: %v", err)
 //	}
@@ -229,7 +233,8 @@ func (c *ThreadsClient) Delete(ctx context.Context, threadID string) error {
 //
 // ```go
 //
-//	threads, err := client.threadsClient.Search({"number":1}, nil, schema.ThreadStatusInterrupted, 15, 5)
+//	ctx := context.Background()
+//	threads, err := client.threadsClient.Search(ctx, {"number":1}, nil, schema.ThreadStatusInterrupted, 15, 5)
 //	if err != nil {
 //		fmt.Printf("Failed to search threads: %v", err)
 //	}
@@ -300,7 +305,8 @@ func (c *ThreadsClient) Search(
 //
 // ```go
 //
-//	err := client.threadsClient.Copy("thread-id")
+//	ctx := context.Background()
+//	err := client.threadsClient.Copy(ctx, "thread-id")
 //	if err != nil {
 //		fmt.Printf("Failed to copy thread: %v", err)
 //	}
@@ -334,7 +340,8 @@ func (c *ThreadsClient) Copy(ctx context.Context, threadID string) error {
 //
 // ```go
 //
-//	threadState, err := client.threadsClient.GetState("thread-id", nil, "", false)
+//	ctx := context.Background()
+//	threadState, err := client.threadsClient.GetState(ctx, "thread-id", nil, "", false)
 //	if err != nil {
 //		fmt.Printf("Failed to get thread state: %v", err)
 //	}
@@ -496,7 +503,8 @@ func (c *ThreadsClient) GetState(
 //
 // ```go
 //
-//	threadUpdateStateResponse, err := client.threadsClient.UpdateState("thread-id", nil, "", nil, "")
+//	ctx := context.Background()
+//	threadUpdateStateResponse, err := client.threadsClient.UpdateState(ctx, "thread-id", nil, "", nil, "")
 //	if err != nil {
 //		fmt.Printf("Failed to update thread state: %v", err)
 //	}
@@ -574,7 +582,8 @@ func (c *ThreadsClient) UpdateState(
 //
 // ```go
 //
-//	threadStates, err := client.threadsClient.GetHistory("thread-id", 10, nil, nil, nil)
+//	ctx := context.Background()
+//	threadStates, err := client.threadsClient.GetHistory(ctx, "thread-id", 10, nil, nil, nil)
 //	if err != nil {
 //		fmt.Printf("Failed to get thread state history: %v", err)
 //	}

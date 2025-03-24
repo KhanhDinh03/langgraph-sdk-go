@@ -46,8 +46,9 @@ func NewCronsClient(httpClient *http.HttpClient) *CronsClient {
 // Example:
 //
 //	go```
-//	cronsClient := client.NewCronsClient(httpClient)
+//	ctx := context.Background()
 //	run, err := cronsClient.CreatForThread(
+//		ctx,
 //		"threadID",
 //		"assistantID",
 //		"27 15 * * *",
@@ -136,8 +137,8 @@ func (c *CronsClient) CreatForThread(
 // Example:
 //
 //	go```
-//	cronsClient := client.NewCronsClient(httpClient)
-//	run, err := cronsClient.Creat("assistantID", "27 15 * * *", {"messages": [{"role": "user", "content": "hello!"}]}, {"name":"my_run"}, schema.Config{"configurable": {"model_name": "openai"}}, ["node_to_stop_before_1","node_to_stop_before_2"], ["node_to_stop_after_1","node_to_stop_after_2"], "http://webhook.com", schema.MultitaskStrategyInterrupt)
+//	ctx := context.Background()
+//	run, err := cronsClient.Creat(ctx, "assistantID", "27 15 * * *", {"messages": [{"role": "user", "content": "hello!"}]}, {"name":"my_run"}, schema.Config{"configurable": {"model_name": "openai"}}, ["node_to_stop_before_1","node_to_stop_before_2"], ["node_to_stop_after_1","node_to_stop_after_2"], "http://webhook.com", schema.MultitaskStrategyInterrupt)
 //	if err != nil {
 //		fmt.Println(err)
 //	} else {
@@ -190,11 +191,29 @@ func (c *CronsClient) Creat(
 	return run, nil
 }
 
-func (c *CronsClient) Delete(cronID string) error {
-	path := fmt.Sprintf("/crons/%s", cronID)
-
-	ctx := context.Background()
-	err := c.http.Delete(ctx, path, nil)
+// Delete a cron job.
+//
+// Args:
+//
+//	cronID: The ID of the cron job to delete.
+//
+// Returns:
+//
+//	error: An error if the operation failed.
+//
+// Example:
+//
+//	go```
+//	ctx := context.Background()
+//	err := cronsClient.Delete(ctx, "cronID")
+//	if err != nil {
+//		fmt.Println(err)
+//	} else {
+//		fmt.Println("Cron job deleted")
+//	}
+//	```
+func (c *CronsClient) Delete(ctx context.Context, cronID string) error {
+	err := c.http.Delete(ctx, fmt.Sprintf("/crons/%s", cronID), nil)
 	if err != nil {
 		return err
 	}
@@ -202,6 +221,32 @@ func (c *CronsClient) Delete(cronID string) error {
 	return nil
 }
 
+// Search for cron jobs.
+//
+// Args:
+//
+//	assistantID: The assistant ID or graph name to use for the cron job.
+//		If using graph name, will default to first assistant created from that graph.
+//	threadID: The thread ID to run the cron job on.
+//	limit: The maximum number of cron jobs to return.
+//	offset: The number of cron jobs to skip.
+//
+// Returns:
+//
+//	[]schema.Cron: The list of cron jobs.
+//	error: An error if the operation failed.
+//
+// Example:
+//
+//	go```
+//	ctx := context.Background()
+//	crons, err := cronsClient.Search(ctx, "assistantID", "threadID", 10, 0)
+//	if err != nil {
+//		fmt.Println(err)
+//	} else {
+//		fmt.Println(crons)
+//	}
+//	```
 func (c *CronsClient) Search(
 	ctx context.Context,
 	assistantID string,

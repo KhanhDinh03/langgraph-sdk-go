@@ -45,7 +45,8 @@ func NewAssistantsClient(httpClient *http.HttpClient) *AssistantsClient {
 // Example:
 //
 //	 ```go
-//	 assistant, err := client.Assistants.Get("assistant-id")
+//	 ctx := context.Background()
+//	 assistant, err := client.Assistants.Get(ctx, "my_assistant_id")
 //	 if err != nil {
 //	   fmt.Println(err)
 //	 }
@@ -53,12 +54,12 @@ func NewAssistantsClient(httpClient *http.HttpClient) *AssistantsClient {
 //	 ```
 //	```json
 //	  {
-//	       'assistant_id': 'my_assistant_id',
-//	       'graph_id': 'agent',
-//	       'created_at': '2024-06-25T17:10:33.109781+00:00',
-//	       'updated_at': '2024-06-25T17:10:33.109781+00:00',
-//	       'config': {},
-//	       'metadata': {'created_by': 'system'}
+//	       "assistant_id": "my_assistant_id",
+//	       "graph_id": "agent",
+//	       "created_at": "2024-06-25T17:10:33.109781+00:00",
+//	       "updated_at": "2024-06-25T17:10:33.109781+00:00",
+//	       "config": {},
+//	       "metadata": {"created_by": "system"}
 //	   }
 //	 ```
 func (c *AssistantsClient) Get(ctx context.Context, assistantID string) (schema.Assistant, error) {
@@ -89,7 +90,8 @@ func (c *AssistantsClient) Get(ctx context.Context, assistantID string) (schema.
 // Example:
 //
 //	 ```go
-//	 graph, err := client.Assistants.GetGraph("assistant-id", true)
+//	 ctx := context.Background()
+//	 graph, err := client.Assistants.GetGraph(ctx, "assistant-id", true)
 //	 if err != nil {
 //	   fmt.Println(err)
 //	 }
@@ -97,16 +99,16 @@ func (c *AssistantsClient) Get(ctx context.Context, assistantID string) (schema.
 //	 ```
 //	```json
 //	{
-//	    'nodes':
+//	    "nodes":
 //	        [
-//	            {'id': '__start__', 'type': 'schema', 'data': '__start__'},
-//	            {'id': '__end__', 'type': 'schema', 'data': '__end__'},
-//	            {'id': 'agent','type': 'runnable','data': {'id': ['langgraph', 'utils', 'RunnableCallable'],'name': 'agent'}},
+//	            {"id": "__start__", "type": "schema", "data": "__start__"},
+//	            {"id": "__end__", "type": "schema", "data": "__end__"},
+//	            {"id": "agent","type": "runnable","data": {"id": ["langgraph", "utils", "RunnableCallable"],"name": "agent"}},
 //	        ],
-//	    'edges':
+//	    "edges":
 //	        [
-//	            {'source': '__start__', 'target': 'agent'},
-//	            {'source': 'agent','target': '__end__'}
+//	            {"source": "__start__", "target": "agent"},
+//	            {"source": "agent","target": "__end__"}
 //	        ]
 //	}
 //
@@ -143,7 +145,8 @@ func (c *AssistantsClient) GetGraph(ctx context.Context, assistantID string, xra
 // Example:
 //
 //	 ```go
-//	 schemas, err := client.Assistants.GetSchemas("assistant-id")
+//	 ctx := context.Background()
+//	 schemas, err := client.Assistants.GetSchemas(ctx, "assistant-id")
 //	 if err != nil {
 //	   fmt.Println(err)
 //	 }
@@ -152,84 +155,84 @@ func (c *AssistantsClient) GetGraph(ctx context.Context, assistantID string, xra
 //	```json
 //
 //	{
-//	                'graph_id': 'agent',
-//	                'state_schema':
+//	                "graph_id": "agent",
+//	                "state_schema":
 //	                    {
-//	                        'title': 'LangGraphInput',
-//	                        '$ref': '#/definitions/AgentState',
-//	                        'definitions':
+//	                        "title": "LangGraphInput",
+//	                        "$ref": "#/definitions/AgentState",
+//	                        "definitions":
 //	                            {
-//	                                'BaseMessage':
+//	                                "BaseMessage":
 //	                                    {
-//	                                        'title': 'BaseMessage',
-//	                                        'description': 'Base abstract Message class. Messages are the inputs and outputs of ChatModels.',
-//	                                        'type': 'object',
-//	                                        'properties':
+//	                                        "title": "BaseMessage",
+//	                                        "description": "Base abstract Message class. Messages are the inputs and outputs of ChatModels.",
+//	                                        "type": "object",
+//	                                        "properties":
 //	                                            {
-//	                                             'content':
+//	                                             "content":
 //	                                                {
-//	                                                    'title': 'Content',
-//	                                                    'anyOf': [
-//	                                                        {'type': 'string'},
-//	                                                        {'type': 'array','items': {'anyOf': [{'type': 'string'}, {'type': 'object'}]}}
+//	                                                    "title": "Content",
+//	                                                    "anyOf": [
+//	                                                        {"type": "string"},
+//	                                                        {"type": "array","items": {"anyOf": [{"type": "string"}, {"type": "object"}]}}
 //	                                                    ]
 //	                                                },
-//	                                            'additional_kwargs':
+//	                                            "additional_kwargs":
 //	                                                {
-//	                                                    'title': 'Additional Kwargs',
-//	                                                    'type': 'object'
+//	                                                    "title": "Additional Kwargs",
+//	                                                    "type": "object"
 //	                                                },
-//	                                            'response_metadata':
+//	                                            "response_metadata":
 //	                                                {
-//	                                                    'title': 'Response Metadata',
-//	                                                    'type': 'object'
+//	                                                    "title": "Response Metadata",
+//	                                                    "type": "object"
 //	                                                },
-//	                                            'type':
+//	                                            "type":
 //	                                                {
-//	                                                    'title': 'Type',
-//	                                                    'type': 'string'
+//	                                                    "title": "Type",
+//	                                                    "type": "string"
 //	                                                },
-//	                                            'name':
+//	                                            "name":
 //	                                                {
-//	                                                    'title': 'Name',
-//	                                                    'type': 'string'
+//	                                                    "title": "Name",
+//	                                                    "type": "string"
 //	                                                },
-//	                                            'id':
+//	                                            "id":
 //	                                                {
-//	                                                    'title': 'Id',
-//	                                                    'type': 'string'
+//	                                                    "title": "Id",
+//	                                                    "type": "string"
 //	                                                }
 //	                                            },
-//	                                        'required': ['content', 'type']
+//	                                        "required": ["content", "type"]
 //	                                    },
-//	                                'AgentState':
+//	                                "AgentState":
 //	                                    {
-//	                                        'title': 'AgentState',
-//	                                        'type': 'object',
-//	                                        'properties':
+//	                                        "title": "AgentState",
+//	                                        "type": "object",
+//	                                        "properties":
 //	                                            {
-//	                                                'messages':
+//	                                                "messages":
 //	                                                    {
-//	                                                        'title': 'Messages',
-//	                                                        'type': 'array',
-//	                                                        'items': {'$ref': '#/definitions/BaseMessage'}
+//	                                                        "title": "Messages",
+//	                                                        "type": "array",
+//	                                                        "items": {"$ref": "#/definitions/BaseMessage"}
 //	                                                    }
 //	                                            },
-//	                                        'required': ['messages']
+//	                                        "required": ["messages"]
 //	                                    }
 //	                            }
 //	                    },
-//	                'config_schema':
+//	                "config_schema":
 //	                    {
-//	                        'title': 'Configurable',
-//	                        'type': 'object',
-//	                        'properties':
+//	                        "title": "Configurable",
+//	                        "type": "object",
+//	                        "properties":
 //	                            {
-//	                                'model_name':
+//	                                "model_name":
 //	                                    {
-//	                                        'title': 'Model Name',
-//	                                        'enum': ['anthropic', 'openai'],
-//	                                        'type': 'string'
+//	                                        "title": "Model Name",
+//	                                        "enum": ["anthropic", "openai"],
+//	                                        "type": "string"
 //	                                    }
 //	                            }
 //	                    }
@@ -299,7 +302,9 @@ func (c *AssistantsClient) GetSubgraphs(ctx context.Context, assistantID string,
 // Example:
 //
 //		```go
+//		ctx := context.Background()
 //		assistant, err := client.Assistants.Create(
+//				ctx,
 //				"agent",
 //				&schema.Config{"configurable": {"model_name": "openai"}},
 //				{"number":1},
@@ -313,12 +318,12 @@ func (c *AssistantsClient) GetSubgraphs(ctx context.Context, assistantID string,
 //		```
 //		```json
 //		{
-//			'assistant_id': 'my-assistant-id',
-//			'graph_id': 'agent',
-//			'created_at': '2024-06-25T17:10:33.109781+00:00',
-//			'updated_at': '2024-06-25T17:10:33.109781+00:00',
-//			'config': {},
-//			'metadata': {'number': 1}
+//			"assistant_id": "my-assistant-id",
+//			"graph_id": "agent",
+//			"created_at": "2024-06-25T17:10:33.109781+00:00",
+//			"updated_at": "2024-06-25T17:10:33.109781+00:00",
+//			"config": {},
+//			"metadata": {"number": 1}
 //		}
 //		```
 func (c *AssistantsClient) Create(
@@ -389,7 +394,9 @@ func (c *AssistantsClient) Create(
 // Example:
 //
 //	 ```go
+//	 ctx := context.Background()
 //	 assistant, err := client.Assistants.Update(
+//		 ctx,
 //		 "e280dad7-8618-443f-87f1-8e41841c180f",
 //		 "other-graph",
 //		 &schema.Config{"configurable": {"model_name": "openai"}},
@@ -449,16 +456,18 @@ func (c *AssistantsClient) Update(
 //
 // Returns:
 //
-//	error: Any error encountered during the API request
+//	 ctx: The context to use for the request
+//		error: Any error encountered during the API request
 //
 // Example:
 //
-//	```go
-//	err := client.Assistants.Delete("assistant-id")
-//	if err != nil {
-//	  fmt.Println(err)
-//	}
-//	```
+//		```go
+//	 ctx := context.Background()
+//		err := client.Assistants.Delete(ctx, "assistant-id")
+//		if err != nil {
+//		  fmt.Println(err)
+//		}
+//		```
 func (c *AssistantsClient) Delete(ctx context.Context, assistantID string) error {
 	err := c.http.Delete(ctx, fmt.Sprintf("/assistants/%s", assistantID), nil)
 	if err != nil {
@@ -486,7 +495,9 @@ func (c *AssistantsClient) Delete(ctx context.Context, assistantID string) error
 // Example:
 //
 //	```go
+//	ctx := context.Background()
 //	assistants, err := client.Assistants.Search(
+//		ctx,
 //		{"created_by": "system"},
 //		"agent",
 //		10,
@@ -559,7 +570,8 @@ func (c *AssistantsClient) Search(
 // Example:
 //
 //	```go
-//	assistants, err := client.Assistants.GetVersions("assistant-id", nil, 10, 0)
+//	ctx := context.Background()
+//	assistants, err := client.Assistants.GetVersions(ctx, "assistant-id", nil, 10, 0)
 //	if err != nil {
 //		fmt.Println(err)
 //	}
@@ -623,7 +635,8 @@ func (c *AssistantsClient) GetVersions(
 // Example:
 //
 //	```go
-//	assistant, err := client.Assistants.SetLatest("assistant-id", 1)
+//	ctx := context.Background()
+//	assistant, err := client.Assistants.SetLatest(ctx, "assistant-id", 1)
 //	if err != nil {
 //	  fmt.Println(err)
 //	}

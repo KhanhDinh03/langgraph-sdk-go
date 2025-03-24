@@ -79,7 +79,7 @@ func getGeaders(apiKey string, customHeaders map[string]string) map[string]strin
 
 func GetClient(url string, apiKey string, headers map[string]string) *LangGraphClient {
 	if url == "" {
-		url = "http://localhost:8123"
+		url = "http://localhost:2024"
 	}
 
 	transport := &http_client.Transport{

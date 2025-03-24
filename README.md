@@ -1,25 +1,26 @@
 # LangGraph SDK for Go
 
-LangGraph SDK là một thư viện Go giúp bạn dễ dàng tương tác với API LangGraph. SDK này cung cấp các client để quản lý các tài nguyên cốt lõi như Assistants, Threads, Runs, Cron Jobs và Store.
+LangGraph SDK is a Go library that simplifies interaction with the LangGraph API. This SDK provides clients to manage core resources such as Assistants, Threads, Runs, Cron Jobs, and Store.
 
-## Mục lục
+## Table of Contents
 
-- [Cài đặt](#cài-đặt)
-- [Cách sử dụng](#cách-sử-dụng)
-  - [Khởi tạo Client](#khởi-tạo-client)
-  - [Quản lý Assistants](#quản-lý-assistants)
-  - [Quản lý Threads](#quản-lý-threads)
-  - [Quản lý Runs](#quản-lý-runs)
-  - [Quản lý Cron Jobs](#quản-lý-cron-jobs)
-  - [Quản lý Store](#quản-lý-store)
-- [Đóng góp](#đóng-góp)
-- [Giấy phép](#giấy-phép)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Initialize Client](#initialize-client)
+  - [Manage Assistants](#manage-assistants)
+  - [Manage Threads](#manage-threads)
+  - [Manage Runs](#manage-runs)
+  - [Manage Cron Jobs](#manage-cron-jobs)
+  - [Manage Store](#manage-store)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## Cài đặt
+## Installation
 
-Để sử dụng LangGraph SDK, bạn cần cài đặt Go phiên bản `1.23.4` trở lên. Thêm SDK vào dự án của bạn bằng cách chạy lệnh sau:
+To use the LangGraph SDK, you need Go version `1.23.4` or higher. Add the SDK to your project by running the following command:
 
 ```bash
 go get langgraph-sdk
+```

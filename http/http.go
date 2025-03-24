@@ -44,19 +44,12 @@ func (c *HttpClient) CheckConnection() error {
 // Get sends a GET request.
 func (c *HttpClient) Get(ctx context.Context, path string, params url.Values) (*resty.Response, error) {
 	req := c.client.R().SetContext(ctx)
-
 	if params != nil {
 		req.SetQueryParamsFromValues(params)
 	}
-
 	resp, err := req.Get(path)
-	if err != nil {
+	if err := handleError(resp, err); err != nil {
 		return nil, err
-	}
-
-	if resp.IsError() {
-		log.Printf("Error from langgraph-api: %s", string(resp.Body()))
-		return nil, fmt.Errorf("HTTP error: %d - %s", resp.StatusCode(), string(resp.Body()))
 	}
 
 	return resp, nil
@@ -72,13 +65,8 @@ func (c *HttpClient) Post(ctx context.Context, path string, jsonData any) (*rest
 	}
 
 	resp, err := req.Post(path)
-	if err != nil {
+	if err := handleError(resp, err); err != nil {
 		return nil, err
-	}
-
-	if resp.IsError() {
-		log.Printf("Error from langgraph-api: %s", string(resp.Body()))
-		return nil, fmt.Errorf("HTTP error: %d - %s", resp.StatusCode(), string(resp.Body()))
 	}
 
 	return resp, nil
@@ -92,13 +80,8 @@ func (c *HttpClient) Put(ctx context.Context, path string, jsonData any) (*resty
 		SetBody(jsonData)
 
 	resp, err := req.Put(path)
-	if err != nil {
+	if err := handleError(resp, err); err != nil {
 		return nil, err
-	}
-
-	if resp.IsError() {
-		log.Printf("Error from langgraph-api: %s", string(resp.Body()))
-		return nil, fmt.Errorf("HTTP error: %d - %s", resp.StatusCode(), string(resp.Body()))
 	}
 
 	return resp, nil
@@ -112,13 +95,8 @@ func (c *HttpClient) Patch(ctx context.Context, path string, jsonData any) (*res
 		SetBody(jsonData)
 
 	resp, err := req.Patch(path)
-	if err != nil {
+	if err := handleError(resp, err); err != nil {
 		return nil, err
-	}
-
-	if resp.IsError() {
-		log.Printf("Error from langgraph-api: %s", string(resp.Body()))
-		return nil, fmt.Errorf("HTTP error: %d - %s", resp.StatusCode(), string(resp.Body()))
 	}
 
 	return resp, nil
@@ -134,13 +112,8 @@ func (c *HttpClient) Delete(ctx context.Context, path string, jsonData any) erro
 	}
 
 	resp, err := req.Delete(path)
-	if err != nil {
+	if err := handleError(resp, err); err != nil {
 		return err
-	}
-
-	if resp.IsError() {
-		log.Printf("Error from langgraph-api: %s", string(resp.Body()))
-		return fmt.Errorf("HTTP error: %d - %s", resp.StatusCode(), string(resp.Body()))
 	}
 
 	return nil

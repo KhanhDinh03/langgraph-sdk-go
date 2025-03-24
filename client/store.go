@@ -18,16 +18,7 @@ func NewStoreClient(httpClient *http.HttpClient) *StoreClient {
 	return &StoreClient{http: httpClient}
 }
 
-func containsDot(s string) bool {
-	for _, char := range s {
-		if char == '.' {
-			return true
-		}
-	}
-	return false
-}
-
-func (c *StoreClient) PutItem(namespace []string, key string, value map[string]any, index any) error {
+func (c *StoreClient) PutItem(ctx context.Context, namespace []string, key string, value map[string]any, index any) error {
 	for _, label := range namespace {
 		if containsDot(label) {
 			return fmt.Errorf("invalid namespace label '%s'. Namespace labels cannot contain periods ('.')", label)
@@ -46,13 +37,11 @@ func (c *StoreClient) PutItem(namespace []string, key string, value map[string]a
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	ctx := context.Background()
-
 	_, err := c.http.Put(ctx, "/store", payload)
 	return err
 }
 
-func (c *StoreClient) GetItem(namespace []string, key string) (map[string]any, error) {
+func (c *StoreClient) GetItem(ctx context.Context, namespace []string, key string) (map[string]any, error) {
 	for _, label := range namespace {
 		if containsDot(label) {
 			return nil, fmt.Errorf("invalid namespace label '%s'. Namespace labels cannot contain periods ('.')", label)
@@ -63,7 +52,6 @@ func (c *StoreClient) GetItem(namespace []string, key string) (map[string]any, e
 	params.Add("namespace", strings.Join(namespace, "."))
 	params.Add("key", key)
 
-	ctx := context.Background()
 	resp, err := c.http.Get(ctx, "/store", params)
 	if err != nil {
 		return nil, err
@@ -78,7 +66,7 @@ func (c *StoreClient) GetItem(namespace []string, key string) (map[string]any, e
 	return item, nil
 }
 
-func (c *StoreClient) DeleteItem(namespace []string, key string) error {
+func (c *StoreClient) DeleteItem(ctx context.Context, namespace []string, key string) error {
 	for _, label := range namespace {
 		if containsDot(label) {
 			return fmt.Errorf("invalid namespace label '%s'. Namespace labels cannot contain periods ('.')", label)
@@ -89,7 +77,6 @@ func (c *StoreClient) DeleteItem(namespace []string, key string) error {
 	params.Add("namespace", strings.Join(namespace, "."))
 	params.Add("key", key)
 
-	ctx := context.Background()
 	err := c.http.Delete(ctx, "/store", params)
 	if err != nil {
 		return err
@@ -142,7 +129,7 @@ func (c *StoreClient) SearchItems(
 	return searchItemsResponse, nil
 }
 
-func (c *StoreClient) ListNamespaces(prefix []string, suffix []string, maxDepth int, limit int, offset int) ([]schema.ListNamespaceResponse, error) {
+func (c *StoreClient) ListNamespaces(ctx context.Context, prefix []string, suffix []string, maxDepth int, limit int, offset int) ([]schema.ListNamespaceResponse, error) {
 	if limit <= 0 {
 		limit = 10
 	}
@@ -164,7 +151,6 @@ func (c *StoreClient) ListNamespaces(prefix []string, suffix []string, maxDepth 
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	ctx := context.Background()
 	resp, err := c.http.Post(ctx, "/store/namespaces", payload)
 	if err != nil {
 		return []schema.ListNamespaceResponse{}, err

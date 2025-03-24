@@ -1,6 +1,9 @@
 package client
 
-import "reflect"
+import (
+	"reflect"
+	"strings"
+)
 
 func isEmpty(value any) bool {
 	if value == nil {
@@ -56,4 +59,8 @@ func removeEmptyFields(data any) any {
 	default:
 		return data
 	}
+}
+
+func containsDot(s string) bool {
+	return strings.Contains(s, ".")
 }

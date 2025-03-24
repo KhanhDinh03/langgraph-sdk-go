@@ -74,6 +74,7 @@ func NewRunsClient(httpClient *http.HttpClient) *RunsClient {
 //	StreamPart(event="values", data={"messages": [{"content": "how are you?", "additional_kwargs": {}, "response_metadata": {}, "type": "human", "name": None, "id": "fe0a5778-cfe9-42ee-b807-0adaa1873c10", "example": False}, {"content": "I"m doing well, thanks for asking! I"m an AI assistant created by Anthropic to be helpful, honest, and harmless.", "additional_kwargs": {}, "response_metadata": {}, "type": "ai", "name": None, "id": "run-159b782c-b679-4830-83c6-cef87798fe8b", "example": False, "tool_calls": [], "invalid_tool_calls": [], "usage_metadata": None}]})
 //	StreamPart(event="end", data=None)
 func (c *RunsClient) Stream(
+	ctx context.Context,
 	threadID string,
 	assistantID string,
 	input map[string]any,
@@ -126,7 +127,7 @@ func (c *RunsClient) Stream(
 		endPoint = "/runs/stream"
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 
 	streamCh, errCh, err := c.http.Stream(ctx, endPoint, "POST", payload, nil)
 	if err != nil {
@@ -231,6 +232,7 @@ func (c *RunsClient) Stream(
 //
 // ```
 func (c *RunsClient) Create(
+	ctx context.Context,
 	threadID string,
 	assistantID string,
 	input map[string]any,
@@ -279,7 +281,6 @@ func (c *RunsClient) Create(
 		endPoint = "/runs"
 	}
 
-	ctx := context.Background()
 	resp, err := c.http.Post(ctx, endPoint, payload)
 	if err != nil {
 		return schema.Run{}, err
@@ -305,15 +306,15 @@ func filterPayload(payload map[string]any) map[string]any {
 }
 
 // Create a batch of stateless background runs.
-func (c *RunsClient) CreateBatch(payloads []map[string]any) ([]schema.Run, error) {
+func (c *RunsClient) CreateBatch(ctx context.Context, payloads []map[string]any) ([]schema.Run, error) {
 	filteredPayloads := make([]map[string]any, 0, len(payloads))
 	for _, payload := range payloads {
 		filteredPayloads = append(filteredPayloads, filterPayload(payload))
 	}
 
-	path := "/runs/batch"
-	ctx := context.Background()
-	resp, err := c.http.Post(ctx, path, map[string]any{"batch": filteredPayloads})
+	jsonData := map[string]any{"batch": filteredPayloads}
+
+	resp, err := c.http.Post(ctx, "/runs/batch", jsonData)
 	if err != nil {
 		return nil, err
 	}
@@ -399,6 +400,7 @@ func (c *RunsClient) CreateBatch(payloads []map[string]any) ([]schema.Run, error
 //
 //	```
 func (c *RunsClient) Wait(
+	ctx context.Context,
 	threadID string,
 	assistantID string,
 	input map[string]any,
@@ -448,7 +450,6 @@ func (c *RunsClient) Wait(
 		endPoint = "/runs/wait"
 	}
 
-	ctx := context.Background()
 	resp, err := c.http.Post(ctx, endPoint, payload)
 	if err != nil {
 		return nil, err
@@ -492,7 +493,7 @@ func (c *RunsClient) Wait(
 //	fmt.Println(runs)
 //
 //	```
-func (c *RunsClient) List(threadID string, limit int, offset int, status *schema.RunStatus) ([]schema.Run, error) {
+func (c *RunsClient) List(ctx context.Context, threadID string, limit int, offset int, status *schema.RunStatus) ([]schema.Run, error) {
 	if limit <= 0 {
 		limit = 10
 	}
@@ -505,10 +506,7 @@ func (c *RunsClient) List(threadID string, limit int, offset int, status *schema
 		params.Add("status", string(*status))
 	}
 
-	path := fmt.Sprintf("/threads/%s/runs", threadID)
-	ctx := context.Background()
-
-	resp, err := c.http.Get(ctx, path, params)
+	resp, err := c.http.Get(ctx, fmt.Sprintf("/threads/%s/runs", threadID), params)
 	if err != nil {
 		return []schema.Run{}, err
 	}
@@ -544,11 +542,8 @@ func (c *RunsClient) List(threadID string, limit int, offset int, status *schema
 //	fmt.Println(run)
 //
 //	```
-func (c *RunsClient) Get(threadID string, runID string) (schema.Run, error) {
-	path := fmt.Sprintf("/threads/%s/runs/%s", threadID, runID)
-	ctx := context.Background()
-
-	resp, err := c.http.Get(ctx, path, nil)
+func (c *RunsClient) Get(ctx context.Context, threadID string, runID string) (schema.Run, error) {
+	resp, err := c.http.Get(ctx, fmt.Sprintf("/threads/%s/runs/%s", threadID, runID), nil)
 	if err != nil {
 		return schema.Run{}, err
 	}
@@ -585,11 +580,10 @@ func (c *RunsClient) Get(threadID string, runID string) (schema.Run, error) {
 //	}
 //
 //	```
-func (c *RunsClient) Cancel(threadID string, runID string, wait bool, action schema.CancelAction) error {
+func (c *RunsClient) Cancel(ctx context.Context, threadID string, runID string, wait bool, action schema.CancelAction) error {
 	if action == "" {
 		action = schema.CancelActionInterrupt
 	}
-	path := fmt.Sprintf("/threads/%s/runs/%s/cancel", threadID, runID)
 
 	payload := map[string]any{
 		"wait":   wait,
@@ -601,8 +595,7 @@ func (c *RunsClient) Cancel(threadID string, runID string, wait bool, action sch
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	ctx := context.Background()
-	_, err := c.http.Post(ctx, path, payload)
+	_, err := c.http.Post(ctx, fmt.Sprintf("/threads/%s/runs/%s/cancel", threadID, runID), payload)
 	if err != nil {
 		return err
 	}
@@ -633,11 +626,8 @@ func (c *RunsClient) Cancel(threadID string, runID string, wait bool, action sch
 //	fmt.Println(result)
 //
 // ```
-func (c *RunsClient) Join(threadID string, runID string) (map[string]any, error) {
-	path := fmt.Sprintf("/threads/%s/runs/%s/join", threadID, runID)
-	ctx := context.Background()
-
-	resp, err := c.http.Get(ctx, path, nil)
+func (c *RunsClient) Join(ctx context.Context, threadID string, runID string) (map[string]any, error) {
+	resp, err := c.http.Get(ctx, fmt.Sprintf("/threads/%s/runs/%s/join", threadID, runID), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -676,11 +666,10 @@ func (c *RunsClient) Join(threadID string, runID string) (map[string]any, error)
 //	cancel()
 //
 // ```
-func (c *RunsClient) JoinStream(threadID string, runID string, cancelOnDisconnect bool) (chan schema.StreamPart, context.CancelFunc) {
-	path := fmt.Sprintf("/threads/%s/runs/%s/join/stream", threadID, runID)
-	ctx, cancel := context.WithCancel(context.Background())
+func (c *RunsClient) JoinStream(ctx context.Context, threadID string, runID string, cancelOnDisconnect bool) (chan schema.StreamPart, context.CancelFunc) {
+	ctx, cancel := context.WithCancel(ctx)
 
-	streamCh, errCh, err := c.http.Stream(ctx, path, "GET", nil, nil)
+	streamCh, errCh, err := c.http.Stream(ctx, fmt.Sprintf("/threads/%s/runs/%s/join/stream", threadID, runID), "GET", nil, nil)
 	if err != nil {
 		cancel()
 		errCh <- err
@@ -724,11 +713,8 @@ func (c *RunsClient) JoinStream(threadID string, runID string, cancelOnDisconnec
 //	}
 //
 //	```
-func (c *RunsClient) Delete(threadID string, runID string) error {
-	path := fmt.Sprintf("/threads/%s/runs/%s", threadID, runID)
-
-	ctx := context.Background()
-	err := c.http.Delete(ctx, path, nil)
+func (c *RunsClient) Delete(ctx context.Context, threadID string, runID string) error {
+	err := c.http.Delete(ctx, fmt.Sprintf("/threads/%s/runs/%s", threadID, runID), nil)
 	if err != nil {
 		return err
 	}

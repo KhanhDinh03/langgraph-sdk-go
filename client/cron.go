@@ -65,6 +65,7 @@ func NewCronsClient(httpClient *http.HttpClient) *CronsClient {
 //	}
 //	```
 func (c *CronsClient) CreatForThread(
+	ctx context.Context,
 	threadID string,
 	assistantID string,
 	schedule string,
@@ -96,10 +97,7 @@ func (c *CronsClient) CreatForThread(
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	path := fmt.Sprintf("/threads/%s/crons", threadID)
-	ctx := context.Background()
-
-	resp, err := c.http.Post(ctx, path, payload)
+	resp, err := c.http.Post(ctx, fmt.Sprintf("/threads/%s/crons", threadID), payload)
 	if err != nil {
 		return schema.Run{}, err
 	}
@@ -146,6 +144,7 @@ func (c *CronsClient) CreatForThread(
 //	}
 //	```
 func (c *CronsClient) Creat(
+	ctx context.Context,
 	assistantID string,
 	schedule string,
 	input map[string]any,
@@ -176,10 +175,7 @@ func (c *CronsClient) Creat(
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	path := "runs/crons"
-	ctx := context.Background()
-
-	resp, err := c.http.Post(ctx, path, payload)
+	resp, err := c.http.Post(ctx, "runs/crons", payload)
 	if err != nil {
 		return schema.Run{}, err
 	}
@@ -206,6 +202,7 @@ func (c *CronsClient) Delete(cronID string) error {
 }
 
 func (c *CronsClient) Search(
+	ctx context.Context,
 	assistantID string,
 	threadID string,
 	limit int,
@@ -231,10 +228,7 @@ func (c *CronsClient) Search(
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	path := "runs/crons/search"
-	ctx := context.Background()
-
-	resp, err := c.http.Post(ctx, path, payload)
+	resp, err := c.http.Post(ctx, "runs/crons/search", payload)
 	if err != nil {
 		return []schema.Cron{}, err
 	}

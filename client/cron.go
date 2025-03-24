@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"langgraph-sdk/http"
-	"langgraph-sdk/schema"
+
+	"github.com/KhanhDinh03/langgraph-sdk-go/http"
+	"github.com/KhanhDinh03/langgraph-sdk-go/schema"
 )
 
 // Client for managing recurrent runs (cron jobs) in LangGraph.

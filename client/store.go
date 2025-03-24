@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"langgraph-sdk/http"
-	"langgraph-sdk/schema"
+
 	"net/url"
 	"strings"
+
+	"github.com/KhanhDinh03/langgraph-sdk-go/http"
+	"github.com/KhanhDinh03/langgraph-sdk-go/schema"
 )
 
 type StoreClient struct {

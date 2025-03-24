@@ -1,4 +1,4 @@
-module langgraph-sdk
+module github.com/KhanhDinh03/langgraph-sdk-go
 
 go 1.23.4
 

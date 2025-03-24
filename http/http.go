@@ -5,13 +5,13 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"langgraph-sdk/schema"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
+	"github.com/KhanhDinh03/langgraph-sdk-go/schema"
 	"github.com/go-resty/resty/v2"
 	"github.com/tidwall/gjson"
 )

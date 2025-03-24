@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"langgraph-sdk/http"
-	"langgraph-sdk/schema"
 	"net/url"
+
+	"github.com/KhanhDinh03/langgraph-sdk-go/http"
+	"github.com/KhanhDinh03/langgraph-sdk-go/schema"
 )
 
 // Client for managing runs in LangGraph.

@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"langgraph-sdk/http"
-	"langgraph-sdk/schema"
+
 	"net/url"
+
+	"github.com/KhanhDinh03/langgraph-sdk-go/http"
+	"github.com/KhanhDinh03/langgraph-sdk-go/schema"
 )
 
 // Client for managing assistants in LangGraph.
@@ -628,6 +630,7 @@ func (c *AssistantsClient) GetVersions(
 //	fmt.Println(assistant)
 //	```
 func (c *AssistantsClient) SetLatest(ctx context.Context, assistantID string, version int) (schema.Assistant, error) {
+
 	payload := map[string]any{
 		"version": version,
 	}

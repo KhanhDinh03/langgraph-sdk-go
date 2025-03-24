@@ -9,13 +9,15 @@ package langgraph_sdk
 
 import (
 	"fmt"
-	"langgraph-sdk/client"
-	"langgraph-sdk/http"
+
 	"maps"
 	http_client "net/http"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/KhanhDinh03/langgraph-sdk-go/client"
+	"github.com/KhanhDinh03/langgraph-sdk-go/http"
 )
 
 var (

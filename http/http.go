@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -167,7 +166,6 @@ func (c *HttpClient) Stream(ctx context.Context, path string, method string, jso
 		// Read error body
 		body, _ := io.ReadAll(rawBody)
 		rawBody.Close()
-		log.Printf("Error from langgraph-api: %s", string(body))
 		return nil, nil, fmt.Errorf("HTTP error: %d - %s", resp.StatusCode(), string(body))
 	}
 

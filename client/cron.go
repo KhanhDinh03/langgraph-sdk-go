@@ -9,10 +9,6 @@ import (
 	"github.com/KhanhD1nh/langgraph-sdk-go/schema"
 )
 
-// Client for managing recurrent runs (cron jobs) in LangGraph.
-//
-//	A run is a single invocation of an assistant with optional input and config.
-//	This client allows scheduling recurring runs to occur automatically.
 type CronsClient struct {
 	http *http.HttpClient
 }
@@ -21,65 +17,7 @@ func NewCronsClient(httpClient *http.HttpClient) *CronsClient {
 	return &CronsClient{http: httpClient}
 }
 
-// Create a cron job for a thread.
-//
-// Args:
-//
-//			threadID: the thread ID to run the cron job on.
-//			assistantID: The assistant ID or graph name to use for the cron job.
-//	    		If using graph name, will default to first assistant created from that graph.
-//			schedule: The cron schedule to execute this job on.
-//			input: The input to the graph.
-//			metadata: Metadata to assign to the cron job runs.
-//			config: The configuration for the assistant.
-//			interruptBefore: Nodes to interrupt immediately before they get executed.
-//			interruptAfter: Nodes to Nodes to interrupt immediately after they get executed.
-//			webhook: Webhook to call after LangGraph API call is done.
-//			multitaskStrategy: Multitask strategy to use.
-//				Must be one of "reject", "interrupt", "rollback", or "enqueue".
-//
-// Returns:
-//
-//	schema.Run: The created cron job run.
-//	error: An error if the operation failed.
-//
-// Example:
-//
-//	go```
-//	ctx := context.Background()
-//	run, err := cronsClient.CreatForThread(
-//		ctx,
-//		"threadID",
-//		"assistantID",
-//		"27 15 * * *",
-//		{"messages": [{"role": "user", "content": "hello!"}]},
-//		{"name":"my_run"},
-//		schema.Config{"configurable": {"model_name": "openai"}},
-//		["node_to_stop_before_1","node_to_stop_before_2"],
-//		["node_to_stop_after_1","node_to_stop_after_2"],
-//		"http://webhook.com",
-//		schema.MultitaskStrategyInterrupt,
-//	)
-//	if err != nil {
-//		fmt.Println(err)
-//	} else {
-//		fmt.Println(run)
-//	}
-//	```
-func (c *CronsClient) CreatForThread(
-	ctx context.Context,
-	threadID string,
-	assistantID string,
-	schedule string,
-	input map[string]any,
-	metadata map[string]any,
-	config schema.Config,
-	interruptBefore any,
-	interruptAfter any,
-	webhook string,
-	multitaskStrategy schema.MultitaskStrategy,
-	headers map[string]string,
-) (schema.Run, error) {
+func (c *CronsClient) CreatForThread(ctx context.Context, threadID string, assistantID string, schedule string, input *map[string]any, metadata *map[string]any, config *schema.Config, interruptBefore *any, interruptAfter *any, webhook *string, multitaskStrategy *schema.MultitaskStrategy, headers *map[string]string) (schema.Run, error) {
 	payload := map[string]any{
 		"schedule":         schedule,
 		"input":            input,
@@ -91,8 +29,8 @@ func (c *CronsClient) CreatForThread(
 		"webhook":          webhook,
 	}
 
-	if multitaskStrategy != "" {
-		payload["multitask_strategy"] = multitaskStrategy
+	if multitaskStrategy != nil {
+		payload["multitask_strategy"] = *multitaskStrategy
 	}
 
 	payload, ok := removeEmptyFields(payload).(map[string]any)
@@ -100,7 +38,7 @@ func (c *CronsClient) CreatForThread(
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	resp, err := c.http.Post(ctx, fmt.Sprintf("/threads/%s/crons", threadID), payload, &headers)
+	resp, err := c.http.Post(ctx, fmt.Sprintf("/threads/%s/crons", threadID), payload, headers)
 	if err != nil {
 		return schema.Run{}, err
 	}
@@ -114,51 +52,7 @@ func (c *CronsClient) CreatForThread(
 	return run, nil
 }
 
-// Create a cron run.
-//
-// Args:
-//
-//			assistantID: The assistant ID or graph name to use for the cron job.
-//				If using graph name, will default to first assistant created from that graph.
-//			schedule: The cron schedule to execute this job on.
-//			input: The input to the graph.
-//			metadata: Metadata to assign to the cron job runs.
-//			config: The configuration for the assistant.
-//			interruptBefore: Nodes to interrupt immediately before they get executed.
-//			interruptAfter: Nodes to Nodes to interrupt immediately after they get executed.
-//			webhook: Webhook to call after LangGraph API call is done.
-//			multitaskStrategy: Multitask strategy to use.
-//	 			Must be one of "reject", "interrupt", "rollback", or "enqueue".
-//
-// Returns:
-//
-//	schema.Run: The created cron job run.
-//	error: An error if the operation failed.
-//
-// Example:
-//
-//	go```
-//	ctx := context.Background()
-//	run, err := cronsClient.Creat(ctx, "assistantID", "27 15 * * *", {"messages": [{"role": "user", "content": "hello!"}]}, {"name":"my_run"}, schema.Config{"configurable": {"model_name": "openai"}}, ["node_to_stop_before_1","node_to_stop_before_2"], ["node_to_stop_after_1","node_to_stop_after_2"], "http://webhook.com", schema.MultitaskStrategyInterrupt)
-//	if err != nil {
-//		fmt.Println(err)
-//	} else {
-//		fmt.Println(run)
-//	}
-//	```
-func (c *CronsClient) Creat(
-	ctx context.Context,
-	assistantID string,
-	schedule string,
-	input map[string]any,
-	metadata map[string]any,
-	config schema.Config,
-	interruptBefore schema.All,
-	interruptAfter schema.All,
-	webhook string,
-	multitaskStrategy schema.MultitaskStrategy,
-	headers map[string]string,
-) (schema.Run, error) {
+func (c *CronsClient) Creat(ctx context.Context, assistantID string, schedule string, input *map[string]any, metadata *map[string]any, config *schema.Config, interruptBefore *schema.All, interruptAfter *schema.All, webhook *string, multitaskStrategy *schema.MultitaskStrategy, headers *map[string]string) (schema.Run, error) {
 	payload := map[string]any{
 		"schedule":         schedule,
 		"input":            input,
@@ -170,8 +64,8 @@ func (c *CronsClient) Creat(
 		"webhook":          webhook,
 	}
 
-	if multitaskStrategy != "" {
-		payload["multitask_strategy"] = multitaskStrategy
+	if multitaskStrategy != nil {
+		payload["multitask_strategy"] = *multitaskStrategy
 	}
 
 	payload, ok := removeEmptyFields(payload).(map[string]any)
@@ -179,7 +73,7 @@ func (c *CronsClient) Creat(
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	resp, err := c.http.Post(ctx, "runs/crons", payload, &headers)
+	resp, err := c.http.Post(ctx, "runs/crons", payload, headers)
 	if err != nil {
 		return schema.Run{}, err
 	}
@@ -193,29 +87,8 @@ func (c *CronsClient) Creat(
 	return run, nil
 }
 
-// Delete a cron job.
-//
-// Args:
-//
-//	cronID: The ID of the cron job to delete.
-//
-// Returns:
-//
-//	error: An error if the operation failed.
-//
-// Example:
-//
-//	go```
-//	ctx := context.Background()
-//	err := cronsClient.Delete(ctx, "cronID")
-//	if err != nil {
-//		fmt.Println(err)
-//	} else {
-//		fmt.Println("Cron job deleted")
-//	}
-//	```
-func (c *CronsClient) Delete(ctx context.Context, cronID string, headers map[string]string) error {
-	err := c.http.Delete(ctx, fmt.Sprintf("/crons/%s", cronID), nil, &headers)
+func (c *CronsClient) Delete(ctx context.Context, cronID string, headers *map[string]string) error {
+	err := c.http.Delete(ctx, fmt.Sprintf("/crons/%s", cronID), nil, headers)
 	if err != nil {
 		return err
 	}
@@ -223,46 +96,13 @@ func (c *CronsClient) Delete(ctx context.Context, cronID string, headers map[str
 	return nil
 }
 
-// Search for cron jobs.
-//
-// Args:
-//
-//	assistantID: The assistant ID or graph name to use for the cron job.
-//		If using graph name, will default to first assistant created from that graph.
-//	threadID: The thread ID to run the cron job on.
-//	limit: The maximum number of cron jobs to return.
-//	offset: The number of cron jobs to skip.
-//
-// Returns:
-//
-//	[]schema.Cron: The list of cron jobs.
-//	error: An error if the operation failed.
-//
-// Example:
-//
-//	go```
-//	ctx := context.Background()
-//	crons, err := cronsClient.Search(ctx, "assistantID", "threadID", 10, 0)
-//	if err != nil {
-//		fmt.Println(err)
-//	} else {
-//		fmt.Println(crons)
-//	}
-//	```
-func (c *CronsClient) Search(
-	ctx context.Context,
-	assistantID string,
-	threadID string,
-	limit int,
-	offset int,
-	headers map[string]string,
-) ([]schema.Cron, error) {
-	if limit <= 0 {
-		limit = 10
+func (c *CronsClient) Search(ctx context.Context, assistantID *string, threadID *string, limit *int, offset *int, headers *map[string]string) ([]schema.Cron, error) {
+	if limit != nil && *limit <= 0 {
+		*limit = 10
 	}
 
-	if offset < 0 {
-		offset = 0
+	if offset != nil && *offset < 0 {
+		*offset = 0
 	}
 
 	payload := map[string]any{
@@ -277,7 +117,7 @@ func (c *CronsClient) Search(
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	resp, err := c.http.Post(ctx, "runs/crons/search", payload, &headers)
+	resp, err := c.http.Post(ctx, "runs/crons/search", payload, headers)
 	if err != nil {
 		return []schema.Cron{}, err
 	}

@@ -32,24 +32,37 @@ func isEmpty(value any) bool {
 }
 
 func removeEmptyFields(data any) any {
-	v := reflect.ValueOf(data)
+	if data == nil {
+		return nil
+	}
 
-	switch v.Kind() {
+	val := reflect.ValueOf(data)
+
+	// Dereference con trỏ
+	for val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			return nil
+		}
+		val = val.Elem()
+	}
+
+	switch val.Kind() {
 	case reflect.Map:
 		cleanedMap := make(map[string]any)
-		for _, key := range v.MapKeys() {
-			val := v.MapIndex(key).Interface()
-			cleanedVal := removeEmptyFields(val)
+		for _, key := range val.MapKeys() {
+			v := val.MapIndex(key)
+			cleanedVal := removeEmptyFields(v.Interface())
 			if !isEmpty(cleanedVal) {
 				cleanedMap[key.String()] = cleanedVal
 			}
 		}
 		return cleanedMap
 
-	case reflect.Slice:
+	case reflect.Slice, reflect.Array:
 		cleanedSlice := []any{}
-		for i := 0; i < v.Len(); i++ {
-			cleanedVal := removeEmptyFields(v.Index(i).Interface())
+		for i := 0; i < val.Len(); i++ {
+			item := val.Index(i).Interface()
+			cleanedVal := removeEmptyFields(item)
 			if !isEmpty(cleanedVal) {
 				cleanedSlice = append(cleanedSlice, cleanedVal)
 			}
@@ -57,7 +70,7 @@ func removeEmptyFields(data any) any {
 		return cleanedSlice
 
 	default:
-		return data
+		return val.Interface()
 	}
 }
 

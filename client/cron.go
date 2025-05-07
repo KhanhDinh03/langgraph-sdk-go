@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/KhanhDinh03/langgraph-sdk-go/http"
-	"github.com/KhanhDinh03/langgraph-sdk-go/schema"
+	"github.com/KhanhD1nh/langgraph-sdk-go/http"
+	"github.com/KhanhD1nh/langgraph-sdk-go/schema"
 )
 
 // Client for managing recurrent runs (cron jobs) in LangGraph.
@@ -78,6 +78,7 @@ func (c *CronsClient) CreatForThread(
 	interruptAfter any,
 	webhook string,
 	multitaskStrategy schema.MultitaskStrategy,
+	headers map[string]string,
 ) (schema.Run, error) {
 	payload := map[string]any{
 		"schedule":         schedule,
@@ -99,7 +100,7 @@ func (c *CronsClient) CreatForThread(
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	resp, err := c.http.Post(ctx, fmt.Sprintf("/threads/%s/crons", threadID), payload)
+	resp, err := c.http.Post(ctx, fmt.Sprintf("/threads/%s/crons", threadID), payload, &headers)
 	if err != nil {
 		return schema.Run{}, err
 	}
@@ -156,6 +157,7 @@ func (c *CronsClient) Creat(
 	interruptAfter schema.All,
 	webhook string,
 	multitaskStrategy schema.MultitaskStrategy,
+	headers map[string]string,
 ) (schema.Run, error) {
 	payload := map[string]any{
 		"schedule":         schedule,
@@ -177,7 +179,7 @@ func (c *CronsClient) Creat(
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	resp, err := c.http.Post(ctx, "runs/crons", payload)
+	resp, err := c.http.Post(ctx, "runs/crons", payload, &headers)
 	if err != nil {
 		return schema.Run{}, err
 	}
@@ -212,8 +214,8 @@ func (c *CronsClient) Creat(
 //		fmt.Println("Cron job deleted")
 //	}
 //	```
-func (c *CronsClient) Delete(ctx context.Context, cronID string) error {
-	err := c.http.Delete(ctx, fmt.Sprintf("/crons/%s", cronID), nil)
+func (c *CronsClient) Delete(ctx context.Context, cronID string, headers map[string]string) error {
+	err := c.http.Delete(ctx, fmt.Sprintf("/crons/%s", cronID), nil, &headers)
 	if err != nil {
 		return err
 	}
@@ -253,6 +255,7 @@ func (c *CronsClient) Search(
 	threadID string,
 	limit int,
 	offset int,
+	headers map[string]string,
 ) ([]schema.Cron, error) {
 	if limit <= 0 {
 		limit = 10
@@ -274,7 +277,7 @@ func (c *CronsClient) Search(
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	resp, err := c.http.Post(ctx, "runs/crons/search", payload)
+	resp, err := c.http.Post(ctx, "runs/crons/search", payload, &headers)
 	if err != nil {
 		return []schema.Cron{}, err
 	}

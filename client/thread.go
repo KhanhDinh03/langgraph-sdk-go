@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/KhanhDinh03/langgraph-sdk-go/http"
-	"github.com/KhanhDinh03/langgraph-sdk-go/schema"
+	"github.com/KhanhD1nh/langgraph-sdk-go/http"
+	"github.com/KhanhD1nh/langgraph-sdk-go/schema"
 )
 
 // Client for managing threads in LangGraph.
@@ -62,8 +62,8 @@ func NewThreadsClient(httpClient *http.HttpClient) *ThreadsClient {
 //	}
 //
 // ```
-func (c *ThreadsClient) Get(ctx context.Context, threadID string) (schema.Thread, error) {
-	resp, err := c.http.Get(ctx, fmt.Sprintf("/threads/%s", threadID), nil)
+func (c *ThreadsClient) Get(ctx context.Context, threadID string, headers map[string]string) (schema.Thread, error) {
+	resp, err := c.http.Get(ctx, fmt.Sprintf("/threads/%s", threadID), nil, &headers)
 	if err != nil {
 		return schema.Thread{}, err
 	}
@@ -102,7 +102,32 @@ func (c *ThreadsClient) Get(ctx context.Context, threadID string) (schema.Thread
 //
 // fmt.Printf("Thread: %v", thread)
 // ```
-func (c *ThreadsClient) Create(ctx context.Context, metadata schema.Json, threadID string, ifExists schema.OnConflictBehavior) (schema.Thread, error) {
+func (c *ThreadsClient) Create(ctx context.Context, metadata schema.Json, threadID string, ifExists schema.OnConflictBehavior, supersteps any, graphID string, headers map[string]string) (schema.Thread, error) {
+	// payload: Dict[str, Any] = {}
+	//     if thread_id:
+	//         payload["thread_id"] = thread_id
+	//     if metadata or graph_id:
+	//         payload["metadata"] = {
+	//             **(metadata or {}),
+	//             **({"graph_id": graph_id} if graph_id else {}),
+	//         }
+	//     if if_exists:
+	//         payload["if_exists"] = if_exists
+	//     if supersteps:
+	//         payload["supersteps"] = [
+	//             {
+	//                 "updates": [
+	//                     {
+	//                         "values": u["values"],
+	//                         "command": u.get("command"),
+	//                         "as_node": u["as_node"],
+	//                     }
+	//                     for u in s["updates"]
+	//                 ]
+	//             }
+	//             for s in supersteps
+	//         ]
+
 	payload := map[string]any{}
 	if metadata != nil {
 		payload["metadata"] = metadata
@@ -113,13 +138,56 @@ func (c *ThreadsClient) Create(ctx context.Context, metadata schema.Json, thread
 	if ifExists != "" {
 		payload["if_exists"] = ifExists
 	}
+	if supersteps != nil {
+		superstepsSlice, ok := supersteps.([]any)
+		if !ok {
+			return schema.Thread{}, fmt.Errorf("supersteps must be a slice, got %T", supersteps)
+		}
+		var superstepsPayload []map[string]any
+		for _, s := range superstepsSlice {
+			sMap, ok := s.(map[string]any)
+			if !ok {
+				return schema.Thread{}, fmt.Errorf("each superstep must be a map, got %T", s)
+			}
+			updatesRaw, ok := sMap["updates"]
+			if !ok {
+				return schema.Thread{}, fmt.Errorf("superstep missing 'updates' key")
+			}
+			updatesSlice, ok := updatesRaw.([]any)
+			if !ok {
+				return schema.Thread{}, fmt.Errorf("'updates' must be a slice, got %T", updatesRaw)
+			}
+			var updatesPayload []map[string]any
+			for _, u := range updatesSlice {
+				uMap, ok := u.(map[string]any)
+				if !ok {
+					return schema.Thread{}, fmt.Errorf("each update must be a map, got %T", u)
+				}
+				updateObj := map[string]any{
+					"values":  uMap["values"],
+					"as_node": uMap["as_node"],
+				}
+				if cmd, ok := uMap["command"]; ok {
+					updateObj["command"] = cmd
+				}
+				updatesPayload = append(updatesPayload, updateObj)
+			}
+			superstepsPayload = append(superstepsPayload, map[string]any{
+				"updates": updatesPayload,
+			})
+		}
+		payload["supersteps"] = superstepsPayload
+	}
+	if graphID != "" {
+		payload["graph_id"] = graphID
+	}
 
 	payload, ok := removeEmptyFields(payload).(map[string]any)
 	if !ok {
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	resp, err := c.http.Post(ctx, "/threads", payload)
+	resp, err := c.http.Post(ctx, "/threads", payload, &headers)
 	if err != nil {
 		return schema.Thread{}, err
 	}
@@ -157,7 +225,7 @@ func (c *ThreadsClient) Create(ctx context.Context, metadata schema.Json, thread
 //
 // fmt.Printf("Thread: %v", thread)
 // ```
-func (c *ThreadsClient) Update(ctx context.Context, threadID string, metadata map[string]any) (schema.Thread, error) {
+func (c *ThreadsClient) Update(ctx context.Context, threadID string, metadata map[string]any, headers map[string]string) (schema.Thread, error) {
 	payload := map[string]any{}
 	if metadata != nil {
 		payload["metadata"] = metadata
@@ -168,7 +236,7 @@ func (c *ThreadsClient) Update(ctx context.Context, threadID string, metadata ma
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	resp, err := c.http.Patch(ctx, fmt.Sprintf("/threads/%s", threadID), payload)
+	resp, err := c.http.Patch(ctx, fmt.Sprintf("/threads/%s", threadID), payload, &headers)
 	if err != nil {
 		return schema.Thread{}, err
 	}
@@ -204,8 +272,8 @@ func (c *ThreadsClient) Update(ctx context.Context, threadID string, metadata ma
 //
 // fmt.Printf("Thread deleted successfully")
 // ```
-func (c *ThreadsClient) Delete(ctx context.Context, threadID string) error {
-	err := c.http.Delete(ctx, fmt.Sprintf("/threads/%s", threadID), nil)
+func (c *ThreadsClient) Delete(ctx context.Context, threadID string, headers map[string]string) error {
+	err := c.http.Delete(ctx, fmt.Sprintf("/threads/%s", threadID), nil, &headers)
 	if err != nil {
 		return err
 	}
@@ -248,6 +316,9 @@ func (c *ThreadsClient) Search(
 	status schema.ThreadStatus,
 	limit int,
 	offset int,
+	sortBy schema.ThreadSortBy,
+	sortOrder schema.SortOrder,
+	headers map[string]string,
 ) ([]schema.Thread, error) {
 	if limit <= 0 {
 		limit = 10
@@ -270,13 +341,19 @@ func (c *ThreadsClient) Search(
 	if status != "" {
 		payload["status"] = status
 	}
+	if sortBy != "" {
+		payload["sort_by"] = sortBy
+	}
+	if sortOrder != "" {
+		payload["sort_order"] = sortOrder
+	}
 
 	payload, ok := removeEmptyFields(payload).(map[string]any)
 	if !ok {
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	resp, err := c.http.Post(ctx, "/threads/search", payload)
+	resp, err := c.http.Post(ctx, "/threads/search", payload, &headers)
 	if err != nil {
 		return []schema.Thread{}, err
 	}
@@ -313,8 +390,8 @@ func (c *ThreadsClient) Search(
 //
 // fmt.Printf("Thread copied successfully")
 // ```
-func (c *ThreadsClient) Copy(ctx context.Context, threadID string) error {
-	_, err := c.http.Post(ctx, fmt.Sprintf("/threads/%s/copy", threadID), nil)
+func (c *ThreadsClient) Copy(ctx context.Context, threadID string, headers map[string]string) error {
+	_, err := c.http.Post(ctx, fmt.Sprintf("/threads/%s/copy", threadID), nil, &headers)
 	if err != nil {
 		return err
 	}
@@ -429,6 +506,7 @@ func (c *ThreadsClient) GetState(
 	checkPoint *schema.Checkpoint,
 	checkPointID string,
 	subgraphs bool,
+	headers map[string]string,
 ) (schema.ThreadState, error) {
 	if checkPoint != nil {
 		payload := map[string]any{
@@ -441,7 +519,7 @@ func (c *ThreadsClient) GetState(
 			fmt.Println("Error: cleanedPayload is not a map[string]any")
 		}
 
-		resp, err := c.http.Post(ctx, fmt.Sprintf("/threads/%s/state/checkpoint", threadID), payload)
+		resp, err := c.http.Post(ctx, fmt.Sprintf("/threads/%s/state/checkpoint", threadID), payload, &headers)
 		if err != nil {
 			return schema.ThreadState{}, err
 		}
@@ -454,7 +532,7 @@ func (c *ThreadsClient) GetState(
 
 		return threadState, nil
 	} else if checkPointID != "" {
-		resp, err := c.http.Get(ctx, fmt.Sprintf("/threads/%s/state/%s", threadID, checkPointID), nil)
+		resp, err := c.http.Get(ctx, fmt.Sprintf("/threads/%s/state/%s", threadID, checkPointID), nil, &headers)
 		if err != nil {
 			return schema.ThreadState{}, err
 		}
@@ -468,7 +546,7 @@ func (c *ThreadsClient) GetState(
 		return threadState, nil
 	} else {
 		ctx := context.Background()
-		resp, err := c.http.Get(ctx, fmt.Sprintf("/threads/%s/state", threadID), nil)
+		resp, err := c.http.Get(ctx, fmt.Sprintf("/threads/%s/state", threadID), nil, &headers)
 		if err != nil {
 			return schema.ThreadState{}, err
 		}
@@ -530,6 +608,7 @@ func (c *ThreadsClient) UpdateState(
 	asNode string,
 	checkPoint *schema.Checkpoint,
 	checkPointID string,
+	headers map[string]string,
 ) (schema.ThreadUpdateStateResponse, error) {
 	payload := map[string]any{
 		"values": values,
@@ -549,7 +628,7 @@ func (c *ThreadsClient) UpdateState(
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	resp, err := c.http.Post(ctx, fmt.Sprintf("/threads/%s/state", threadID), payload)
+	resp, err := c.http.Post(ctx, fmt.Sprintf("/threads/%s/state", threadID), payload, &headers)
 	if err != nil {
 		return schema.ThreadUpdateStateResponse{}, err
 	}
@@ -597,6 +676,7 @@ func (c *ThreadsClient) GetHistory(
 	before any,
 	metadata map[string]any,
 	checkPoint *schema.Checkpoint,
+	headers map[string]string,
 ) ([]schema.ThreadState, error) {
 	if limit <= 0 {
 		limit = 10
@@ -620,7 +700,7 @@ func (c *ThreadsClient) GetHistory(
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	resp, err := c.http.Post(ctx, fmt.Sprintf("/threads/%s/history", threadID), payload)
+	resp, err := c.http.Post(ctx, fmt.Sprintf("/threads/%s/history", threadID), payload, &headers)
 	if err != nil {
 		return []schema.ThreadState{}, err
 	}

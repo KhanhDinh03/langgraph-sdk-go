@@ -296,3 +296,32 @@ type Command struct {
 	Update map[string]any `json:"update,omitempty"` // Updates to apply to the state
 	Resume any            `json:"resume,omitempty"` // Value to resume with
 }
+
+// The field to sort by.
+type AssistantSortBy string
+
+const (
+	AssistantSortByAssistantID AssistantSortBy = "assistant_id"
+	AssistantSortByGraphID     AssistantSortBy = "graph_id"
+	AssistantSortByName        AssistantSortBy = "name"
+	AssistantSortByCreatedAt   AssistantSortBy = "created_at"
+	AssistantSortByUpdatedAt   AssistantSortBy = "updated_at"
+)
+
+// The order to sort by.
+type SortOrder string
+
+const (
+	SortOrderAsc  SortOrder = "asc"
+	SortOrderDesc SortOrder = "desc"
+)
+
+// The field to sort by.
+type ThreadSortBy string
+
+const (
+	ThreadSortByThreadID  ThreadSortBy = "thread_id"
+	ThreadSortByStatus    ThreadSortBy = "status"
+	ThreadSortByCreatedAt ThreadSortBy = "created_at"
+	ThreadSortByUpdatedAt ThreadSortBy = "updated_at"
+)

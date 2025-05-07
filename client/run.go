@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/KhanhDinh03/langgraph-sdk-go/http"
-	"github.com/KhanhDinh03/langgraph-sdk-go/schema"
+	"github.com/KhanhD1nh/langgraph-sdk-go/http"
+	"github.com/KhanhD1nh/langgraph-sdk-go/schema"
 )
 
 // Client for managing runs in LangGraph.
@@ -87,6 +87,7 @@ func (c *RunsClient) Stream(
 	config schema.Config,
 	checkpoint schema.Checkpoint,
 	checkpointID string,
+	checkpointDuring bool,
 	interruptBefore any,
 	interruptAfter any,
 	feedbackKeys []string,
@@ -96,6 +97,7 @@ func (c *RunsClient) Stream(
 	multitaskStrategy schema.MultitaskStrategy,
 	ifNotExists schema.IfNotExists,
 	afterSeconds int,
+	headers map[string]string,
 ) (chan schema.StreamPart, context.CancelFunc) {
 	payload := map[string]any{
 		"input":              input,
@@ -111,6 +113,7 @@ func (c *RunsClient) Stream(
 		"webhook":            webhook,
 		"checkpoint":         checkpoint,
 		"checkpoint_id":      checkpointID,
+		"checkpoint_during":  checkpointDuring,
 		"multitask_strategy": multitaskStrategy,
 		"if_not_exists":      ifNotExists,
 		"on_disconnect":      onDisconnect,
@@ -131,7 +134,7 @@ func (c *RunsClient) Stream(
 
 	ctx, cancel := context.WithCancel(ctx)
 
-	streamCh, errCh, err := c.http.Stream(ctx, endPoint, "POST", payload, nil)
+	streamCh, errCh, err := c.http.Stream(ctx, endPoint, "POST", payload, nil, &headers)
 	if err != nil {
 		cancel()
 		errCh <- err
@@ -246,6 +249,7 @@ func (c *RunsClient) Create(
 	config schema.Config,
 	checkpoint schema.Checkpoint,
 	checkpointID string,
+	checkpointDuring bool,
 	interruptBefore any,
 	interruptAfter any,
 	webhook string,
@@ -253,6 +257,7 @@ func (c *RunsClient) Create(
 	ifNotExists schema.IfNotExists,
 	onCompletion schema.OnCompletionBehavior,
 	afterSeconds int,
+	headers map[string]string,
 ) (schema.Run, error) {
 	payload := map[string]any{
 		"input":              input,
@@ -267,6 +272,7 @@ func (c *RunsClient) Create(
 		"webhook":            webhook,
 		"checkpoint":         checkpoint,
 		"checkpoint_id":      checkpointID,
+		"checkpoint_during":  checkpointDuring,
 		"multitask_strategy": multitaskStrategy,
 		"if_not_exists":      ifNotExists,
 		"after_seconds":      afterSeconds,
@@ -284,7 +290,7 @@ func (c *RunsClient) Create(
 		endPoint = "/runs"
 	}
 
-	resp, err := c.http.Post(ctx, endPoint, payload)
+	resp, err := c.http.Post(ctx, endPoint, payload, &headers)
 	if err != nil {
 		return schema.Run{}, err
 	}
@@ -325,7 +331,7 @@ func (c *RunsClient) CreateBatch(ctx context.Context, payloads []map[string]any)
 
 	jsonData := map[string]any{"batch": filteredPayloads}
 
-	resp, err := c.http.Post(ctx, "/runs/batch", jsonData)
+	resp, err := c.http.Post(ctx, "/runs/batch", jsonData, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -421,6 +427,7 @@ func (c *RunsClient) Wait(
 	config schema.Config,
 	checkPoint schema.Checkpoint,
 	checkPointID string,
+	checkpointDuring bool,
 	interruptBefore any,
 	interruptAfter any,
 	webhook string,
@@ -430,6 +437,7 @@ func (c *RunsClient) Wait(
 	ifNotExists schema.IfNotExists,
 	afterSeconds int,
 	raiseError bool,
+	headers map[string]string,
 ) (any, error) {
 	payload := map[string]any{
 		"input":              input,
@@ -439,6 +447,7 @@ func (c *RunsClient) Wait(
 		"assistant_id":       assistantID,
 		"checkpoint":         checkPoint,
 		"checkpoint_id":      checkPointID,
+		"checkpoint_during":  checkpointDuring,
 		"interrupt_before":   interruptBefore,
 		"interrupt_after":    interruptAfter,
 		"webhook":            webhook,
@@ -462,7 +471,7 @@ func (c *RunsClient) Wait(
 		endPoint = "/runs/wait"
 	}
 
-	resp, err := c.http.Post(ctx, endPoint, payload)
+	resp, err := c.http.Post(ctx, endPoint, payload, &headers)
 	if err != nil {
 		return nil, err
 	}
@@ -506,7 +515,7 @@ func (c *RunsClient) Wait(
 //		fmt.Println(runs)
 //
 //		```
-func (c *RunsClient) List(ctx context.Context, threadID string, limit int, offset int, status *schema.RunStatus) ([]schema.Run, error) {
+func (c *RunsClient) List(ctx context.Context, threadID string, limit int, offset int, status *schema.RunStatus, headers map[string]string) ([]schema.Run, error) {
 	if limit <= 0 {
 		limit = 10
 	}
@@ -519,7 +528,7 @@ func (c *RunsClient) List(ctx context.Context, threadID string, limit int, offse
 		params.Add("status", string(*status))
 	}
 
-	resp, err := c.http.Get(ctx, fmt.Sprintf("/threads/%s/runs", threadID), params)
+	resp, err := c.http.Get(ctx, fmt.Sprintf("/threads/%s/runs", threadID), params, &headers)
 	if err != nil {
 		return []schema.Run{}, err
 	}
@@ -556,8 +565,8 @@ func (c *RunsClient) List(ctx context.Context, threadID string, limit int, offse
 //		fmt.Println(run)
 //
 //		```
-func (c *RunsClient) Get(ctx context.Context, threadID string, runID string) (schema.Run, error) {
-	resp, err := c.http.Get(ctx, fmt.Sprintf("/threads/%s/runs/%s", threadID, runID), nil)
+func (c *RunsClient) Get(ctx context.Context, threadID string, runID string, headers map[string]string) (schema.Run, error) {
+	resp, err := c.http.Get(ctx, fmt.Sprintf("/threads/%s/runs/%s", threadID, runID), nil, &headers)
 	if err != nil {
 		return schema.Run{}, err
 	}
@@ -595,7 +604,7 @@ func (c *RunsClient) Get(ctx context.Context, threadID string, runID string) (sc
 //	}
 //
 //	```
-func (c *RunsClient) Cancel(ctx context.Context, threadID string, runID string, wait bool, action schema.CancelAction) error {
+func (c *RunsClient) Cancel(ctx context.Context, threadID string, runID string, wait bool, action schema.CancelAction, headers map[string]string) error {
 	if action == "" {
 		action = schema.CancelActionInterrupt
 	}
@@ -610,7 +619,7 @@ func (c *RunsClient) Cancel(ctx context.Context, threadID string, runID string, 
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	_, err := c.http.Post(ctx, fmt.Sprintf("/threads/%s/runs/%s/cancel", threadID, runID), payload)
+	_, err := c.http.Post(ctx, fmt.Sprintf("/threads/%s/runs/%s/cancel", threadID, runID), payload, &headers)
 	if err != nil {
 		return err
 	}
@@ -642,8 +651,8 @@ func (c *RunsClient) Cancel(ctx context.Context, threadID string, runID string, 
 //	fmt.Println(result)
 //
 // ```
-func (c *RunsClient) Join(ctx context.Context, threadID string, runID string) (map[string]any, error) {
-	resp, err := c.http.Get(ctx, fmt.Sprintf("/threads/%s/runs/%s/join", threadID, runID), nil)
+func (c *RunsClient) Join(ctx context.Context, threadID string, runID string, headers map[string]string) (map[string]any, error) {
+	resp, err := c.http.Get(ctx, fmt.Sprintf("/threads/%s/runs/%s/join", threadID, runID), nil, &headers)
 	if err != nil {
 		return nil, err
 	}
@@ -683,10 +692,10 @@ func (c *RunsClient) Join(ctx context.Context, threadID string, runID string) (m
 //	cancel()
 //
 // ```
-func (c *RunsClient) JoinStream(ctx context.Context, threadID string, runID string, cancelOnDisconnect bool) (chan schema.StreamPart, context.CancelFunc) {
+func (c *RunsClient) JoinStream(ctx context.Context, threadID string, runID string, cancelOnDisconnect bool, headers map[string]string) (chan schema.StreamPart, context.CancelFunc) {
 	ctx, cancel := context.WithCancel(ctx)
 
-	streamCh, errCh, err := c.http.Stream(ctx, fmt.Sprintf("/threads/%s/runs/%s/join/stream", threadID, runID), "GET", nil, nil)
+	streamCh, errCh, err := c.http.Stream(ctx, fmt.Sprintf("/threads/%s/runs/%s/join/stream", threadID, runID), "GET", nil, nil, &headers)
 	if err != nil {
 		cancel()
 		errCh <- err
@@ -731,8 +740,8 @@ func (c *RunsClient) JoinStream(ctx context.Context, threadID string, runID stri
 //	}
 //
 //	```
-func (c *RunsClient) Delete(ctx context.Context, threadID string, runID string) error {
-	err := c.http.Delete(ctx, fmt.Sprintf("/threads/%s/runs/%s", threadID, runID), nil)
+func (c *RunsClient) Delete(ctx context.Context, threadID string, runID string, headers map[string]string) error {
+	err := c.http.Delete(ctx, fmt.Sprintf("/threads/%s/runs/%s", threadID, runID), nil, &headers)
 	if err != nil {
 		return err
 	}

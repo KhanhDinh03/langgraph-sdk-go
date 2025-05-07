@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/KhanhDinh03/langgraph-sdk-go/http"
-	"github.com/KhanhDinh03/langgraph-sdk-go/schema"
+	"github.com/KhanhD1nh/langgraph-sdk-go/http"
+	"github.com/KhanhD1nh/langgraph-sdk-go/schema"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,13 +24,15 @@ func TestRunsClient_Create(t *testing.T) {
 		schema.Config{},
 		schema.Checkpoint{},
 		"",
-		"",
-		"",
+		false,
+		nil,
+		nil,
 		"",
 		schema.MultitaskStrategy(""),
 		schema.IfNotExists(""),
 		schema.OnCompletionBehavior(""),
 		0,
+		nil,
 	)
 	assert.NoError(t, err, "Expected no error when creating a run")
 }

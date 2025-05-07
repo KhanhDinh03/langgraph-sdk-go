@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/KhanhDinh03/langgraph-sdk-go/schema"
+	"github.com/KhanhD1nh/langgraph-sdk-go/schema"
 	"github.com/go-resty/resty/v2"
 	"github.com/tidwall/gjson"
 )
@@ -41,10 +41,16 @@ func (c *HttpClient) CheckConnection() error {
 }
 
 // Get sends a GET request.
-func (c *HttpClient) Get(ctx context.Context, path string, params url.Values) (*resty.Response, error) {
+func (c *HttpClient) Get(ctx context.Context, path string, params url.Values, header *map[string]string) (*resty.Response, error) {
 	req := c.client.R().SetContext(ctx)
 	if params != nil {
 		req.SetQueryParamsFromValues(params)
+	}
+
+	if header != nil {
+		for key, value := range *header {
+			req.SetHeader(key, value)
+		}
 	}
 	resp, err := req.Get(path)
 	if err := handleError(resp, err); err != nil {
@@ -55,12 +61,18 @@ func (c *HttpClient) Get(ctx context.Context, path string, params url.Values) (*
 }
 
 // Post sends a POST request.
-func (c *HttpClient) Post(ctx context.Context, path string, jsonData any) (*resty.Response, error) {
+func (c *HttpClient) Post(ctx context.Context, path string, jsonData any, header *map[string]string) (*resty.Response, error) {
 	req := c.client.R().SetContext(ctx)
 
 	if jsonData != nil {
 		req.SetHeader("Content-Type", "application/json")
 		req.SetBody(jsonData)
+	}
+
+	if header != nil {
+		for key, value := range *header {
+			req.SetHeader(key, value)
+		}
 	}
 
 	resp, err := req.Post(path)
@@ -72,11 +84,17 @@ func (c *HttpClient) Post(ctx context.Context, path string, jsonData any) (*rest
 }
 
 // Put sends a PUT request.
-func (c *HttpClient) Put(ctx context.Context, path string, jsonData any) (*resty.Response, error) {
+func (c *HttpClient) Put(ctx context.Context, path string, jsonData any, header *map[string]string) (*resty.Response, error) {
 	req := c.client.R().
 		SetContext(ctx).
 		SetHeader("Content-Type", "application/json").
 		SetBody(jsonData)
+
+	if header != nil {
+		for key, value := range *header {
+			req.SetHeader(key, value)
+		}
+	}
 
 	resp, err := req.Put(path)
 	if err := handleError(resp, err); err != nil {
@@ -87,11 +105,17 @@ func (c *HttpClient) Put(ctx context.Context, path string, jsonData any) (*resty
 }
 
 // Patch sends a PATCH request.
-func (c *HttpClient) Patch(ctx context.Context, path string, jsonData any) (*resty.Response, error) {
+func (c *HttpClient) Patch(ctx context.Context, path string, jsonData any, header *map[string]string) (*resty.Response, error) {
 	req := c.client.R().
 		SetContext(ctx).
 		SetHeader("Content-Type", "application/json").
 		SetBody(jsonData)
+
+	if header != nil {
+		for key, value := range *header {
+			req.SetHeader(key, value)
+		}
+	}
 
 	resp, err := req.Patch(path)
 	if err := handleError(resp, err); err != nil {
@@ -102,12 +126,18 @@ func (c *HttpClient) Patch(ctx context.Context, path string, jsonData any) (*res
 }
 
 // Delete sends a DELETE request.
-func (c *HttpClient) Delete(ctx context.Context, path string, jsonData any) error {
+func (c *HttpClient) Delete(ctx context.Context, path string, jsonData any, header *map[string]string) error {
 	req := c.client.R().SetContext(ctx)
 
 	if jsonData != nil {
 		req.SetHeader("Content-Type", "application/json")
 		req.SetBody(jsonData)
+	}
+
+	if header != nil {
+		for key, value := range *header {
+			req.SetHeader(key, value)
+		}
 	}
 
 	resp, err := req.Delete(path)
@@ -119,12 +149,18 @@ func (c *HttpClient) Delete(ctx context.Context, path string, jsonData any) erro
 }
 
 // Stream streams results using SSE.
-func (c *HttpClient) Stream(ctx context.Context, path string, method string, jsonData any, params url.Values) (chan schema.StreamPart, chan error, error) {
+func (c *HttpClient) Stream(ctx context.Context, path string, method string, jsonData any, params url.Values, headers *map[string]string) (chan schema.StreamPart, chan error, error) {
 	req := c.client.R().
 		SetContext(ctx).
 		SetDoNotParseResponse(true). // Important for streaming
 		SetHeader("Accept", "text/event-stream").
 		SetHeader("Cache-Control", "no-store")
+
+	if headers != nil {
+		for key, value := range *headers {
+			c.client.R().SetHeader(key, value)
+		}
+	}
 
 	if jsonData != nil {
 		req.SetHeader("Content-Type", "application/json")

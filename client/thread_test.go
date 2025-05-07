@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/KhanhDinh03/langgraph-sdk-go/http"
+	"github.com/KhanhD1nh/langgraph-sdk-go/http"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,7 +13,7 @@ func TestThreadsClient_Get(t *testing.T) {
 	client := NewThreadsClient(httpClient)
 
 	threadID := "test-thread-id"
-	_, err := client.Get(context.Background(), threadID)
+	_, err := client.Get(context.Background(), threadID, nil)
 
 	assert.NoError(t, err, "Expected no error when fetching thread")
 }

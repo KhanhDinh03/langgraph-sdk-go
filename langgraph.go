@@ -16,8 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/KhanhDinh03/langgraph-sdk-go/client"
-	"github.com/KhanhDinh03/langgraph-sdk-go/http"
+	"github.com/KhanhD1nh/langgraph-sdk-go/client"
+	"github.com/KhanhD1nh/langgraph-sdk-go/http"
 )
 
 var (
@@ -57,7 +57,7 @@ func getApiKey(apiKey string) string {
 	return ""
 }
 
-func getGeaders(apiKey string, customHeaders map[string]string) map[string]string {
+func getHeaders(apiKey string, customHeaders map[string]string) map[string]string {
 	for _, header := range RESERVED_HEADERS {
 		if _, exists := customHeaders[header]; exists {
 			panic(fmt.Sprintf("Cannot set reserved header '%s'", header))
@@ -91,7 +91,7 @@ func GetClient(url string, apiKey string, headers map[string]string) *LangGraphC
 
 	httpWrapper := http.NewHttpClient(
 		url,
-		getGeaders(apiKey, headers),
+		getHeaders(apiKey, headers),
 		300*time.Second,
 		transport,
 	)

@@ -7,8 +7,9 @@ import (
 
 	"net/url"
 
-	"github.com/KhanhDinh03/langgraph-sdk-go/http"
-	"github.com/KhanhDinh03/langgraph-sdk-go/schema"
+	"github.com/KhanhD1nh/langgraph-sdk-go/http"
+	"github.com/KhanhD1nh/langgraph-sdk-go/schema"
+	"github.com/go-resty/resty/v2"
 )
 
 // Client for managing assistants in LangGraph.
@@ -62,8 +63,8 @@ func NewAssistantsClient(httpClient *http.HttpClient) *AssistantsClient {
 //	       "metadata": {"created_by": "system"}
 //	   }
 //	 ```
-func (c *AssistantsClient) Get(ctx context.Context, assistantID string) (schema.Assistant, error) {
-	resp, err := c.http.Get(ctx, fmt.Sprintf("/assistants/%s", assistantID), nil)
+func (c *AssistantsClient) Get(ctx context.Context, assistantID string, headers map[string]string) (schema.Assistant, error) {
+	resp, err := c.http.Get(ctx, fmt.Sprintf("/assistants/%s", assistantID), nil, &headers)
 	if err != nil {
 		return schema.Assistant{}, err
 	}
@@ -113,11 +114,11 @@ func (c *AssistantsClient) Get(ctx context.Context, assistantID string) (schema.
 //	}
 //
 //	```
-func (c *AssistantsClient) GetGraph(ctx context.Context, assistantID string, xray any) (schema.Graph, error) {
+func (c *AssistantsClient) GetGraph(ctx context.Context, assistantID string, xray any, headers map[string]string) (schema.Graph, error) {
 	params := url.Values{}
 	params.Add("xray", fmt.Sprintf("%v", xray))
 
-	resp, err := c.http.Get(ctx, fmt.Sprintf("/assistants/%s/graph", assistantID), params)
+	resp, err := c.http.Get(ctx, fmt.Sprintf("/assistants/%s/graph", assistantID), params, &headers)
 	if err != nil {
 		return schema.Graph{}, err
 	}
@@ -239,8 +240,8 @@ func (c *AssistantsClient) GetGraph(ctx context.Context, assistantID string, xra
 //	            }
 //
 //	```
-func (c *AssistantsClient) GetSchemas(ctx context.Context, assistantID string) (schema.GraphSchema, error) {
-	resp, err := c.http.Get(ctx, fmt.Sprintf("/assistants/%s/schemas", assistantID), nil)
+func (c *AssistantsClient) GetSchemas(ctx context.Context, assistantID string, headers map[string]string) (schema.GraphSchema, error) {
+	resp, err := c.http.Get(ctx, fmt.Sprintf("/assistants/%s/schemas", assistantID), nil, &headers)
 	if err != nil {
 		return schema.GraphSchema{}, err
 	}
@@ -265,10 +266,28 @@ func (c *AssistantsClient) GetSchemas(ctx context.Context, assistantID string) (
 //
 //	schema.Subgraphs: The subgraphs of the assistant
 //	error: Any error encountered during the API request
-func (c *AssistantsClient) GetSubgraphs(ctx context.Context, assistantID string, namespace string, recurse bool) (schema.Subgraphs, error) {
-	resp, err := c.http.Get(ctx, fmt.Sprintf("/assistants/%s/subgraphs", assistantID), nil)
-	if err != nil {
-		return schema.Subgraphs{}, err
+func (c *AssistantsClient) GetSubgraphs(ctx context.Context, assistantID string, namespace string, recurse bool, headers map[string]string) (schema.Subgraphs, error) {
+	// 	if namespace is not None:
+	// 	return await self.http.get(
+	// 		f"/assistants/{assistant_id}/subgraphs/{namespace}",
+	// 		params={"recurse": recurse},
+	// 		headers=headers,
+	// 	)
+	// else:
+	// 	return await self.http.get(
+	// 		f"/assistants/{assistant_id}/subgraphs",
+	// 		params={"recurse": recurse},
+	// 		headers=headers,
+	// 	)
+	var (
+		resp *resty.Response
+		err  error
+	)
+
+	if namespace != "" {
+		resp, err = c.http.Get(ctx, fmt.Sprintf("/assistants/%s/subgraphs/%s", assistantID, namespace), nil, &headers)
+	} else {
+		resp, err = c.http.Get(ctx, fmt.Sprintf("/assistants/%s/subgraphs", assistantID), nil, &headers)
 	}
 
 	var subgraphs schema.Subgraphs
@@ -334,6 +353,8 @@ func (c *AssistantsClient) Create(
 	assistantID string,
 	ifExists schema.OnConflictBehavior,
 	name string,
+	headers map[string]string,
+	description string,
 ) (schema.Assistant, error) {
 	payload := map[string]any{
 		"graph_id": graphID,
@@ -353,13 +374,16 @@ func (c *AssistantsClient) Create(
 	if name != "" {
 		payload["name"] = name
 	}
+	if description != "" {
+		payload["description"] = description
+	}
 
 	payload, ok := removeEmptyFields(payload).(map[string]any)
 	if !ok {
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	resp, err := c.http.Post(ctx, "/assistants", payload)
+	resp, err := c.http.Post(ctx, "/assistants", payload, &headers)
 	if err != nil {
 		return schema.Assistant{}, err
 	}
@@ -414,6 +438,8 @@ func (c *AssistantsClient) Update(
 	config *schema.Config,
 	metadata schema.Json,
 	name string,
+	headers map[string]string,
+	description string,
 ) (schema.Assistant, error) {
 	payload := map[string]any{}
 	if graphID != "" {
@@ -428,13 +454,16 @@ func (c *AssistantsClient) Update(
 	if name != "" {
 		payload["name"] = name
 	}
+	if description != "" {
+		payload["description"] = description
+	}
 
 	payload, ok := removeEmptyFields(payload).(map[string]any)
 	if !ok {
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	resp, err := c.http.Patch(ctx, fmt.Sprintf("/assistants/%s", assistantID), payload)
+	resp, err := c.http.Patch(ctx, fmt.Sprintf("/assistants/%s", assistantID), payload, &headers)
 	if err != nil {
 		return schema.Assistant{}, err
 	}
@@ -468,8 +497,8 @@ func (c *AssistantsClient) Update(
 //		  fmt.Println(err)
 //		}
 //		```
-func (c *AssistantsClient) Delete(ctx context.Context, assistantID string) error {
-	err := c.http.Delete(ctx, fmt.Sprintf("/assistants/%s", assistantID), nil)
+func (c *AssistantsClient) Delete(ctx context.Context, assistantID string, headers map[string]string) error {
+	err := c.http.Delete(ctx, fmt.Sprintf("/assistants/%s", assistantID), nil, &headers)
 	if err != nil {
 		return err
 	}
@@ -513,6 +542,9 @@ func (c *AssistantsClient) Search(
 	graphID string,
 	limit int,
 	offset int,
+	sortBy schema.AssistantSortBy,
+	sortOrder schema.SortOrder,
+	headers map[string]string,
 ) ([]schema.Assistant, error) {
 	if limit <= 0 {
 		limit = 10
@@ -532,13 +564,19 @@ func (c *AssistantsClient) Search(
 	if graphID != "" {
 		payload["graph_id"] = graphID
 	}
+	if sortBy != "" {
+		payload["sort_by"] = sortBy
+	}
+	if sortOrder != "" {
+		payload["sort_order"] = sortOrder
+	}
 
 	payload, ok := removeEmptyFields(payload).(map[string]any)
 	if !ok {
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	resp, err := c.http.Post(ctx, "/assistants/search", payload)
+	resp, err := c.http.Post(ctx, "/assistants/search", payload, &headers)
 	if err != nil {
 		return []schema.Assistant{}, err
 	}
@@ -583,6 +621,7 @@ func (c *AssistantsClient) GetVersions(
 	metadata schema.Json,
 	limit int,
 	offset int,
+	headers map[string]string,
 ) ([]schema.Assistant, error) {
 	if limit <= 0 {
 		limit = 10
@@ -605,7 +644,7 @@ func (c *AssistantsClient) GetVersions(
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	resp, err := c.http.Post(ctx, fmt.Sprintf("/assistants/%s/versions", assistantID), payload)
+	resp, err := c.http.Post(ctx, fmt.Sprintf("/assistants/%s/versions", assistantID), payload, &headers)
 	if err != nil {
 		return []schema.Assistant{}, err
 	}
@@ -642,7 +681,7 @@ func (c *AssistantsClient) GetVersions(
 //	}
 //	fmt.Println(assistant)
 //	```
-func (c *AssistantsClient) SetLatest(ctx context.Context, assistantID string, version int) (schema.Assistant, error) {
+func (c *AssistantsClient) SetLatest(ctx context.Context, assistantID string, version int, headers map[string]string) (schema.Assistant, error) {
 
 	payload := map[string]any{
 		"version": version,
@@ -653,7 +692,7 @@ func (c *AssistantsClient) SetLatest(ctx context.Context, assistantID string, ve
 		fmt.Println("Error: cleanedPayload is not a map[string]any")
 	}
 
-	resp, err := c.http.Post(ctx, fmt.Sprintf("/assistants/%s/versions/latest", assistantID), payload)
+	resp, err := c.http.Post(ctx, fmt.Sprintf("/assistants/%s/versions/latest", assistantID), payload, &headers)
 	if err != nil {
 		return schema.Assistant{}, err
 	}

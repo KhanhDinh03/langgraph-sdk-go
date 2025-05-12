@@ -38,7 +38,7 @@ func removeEmptyFields(data any) any {
 
 	val := reflect.ValueOf(data)
 
-	// Dereference con trỏ
+	// Dereference pointer
 	for val.Kind() == reflect.Ptr {
 		if val.IsNil() {
 			return nil

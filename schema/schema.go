@@ -301,27 +301,27 @@ type Command struct {
 type AssistantSortBy string
 
 const (
-	AssistantSortByAssistantID AssistantSortBy = "assistant_id"
-	AssistantSortByGraphID     AssistantSortBy = "graph_id"
-	AssistantSortByName        AssistantSortBy = "name"
-	AssistantSortByCreatedAt   AssistantSortBy = "created_at"
-	AssistantSortByUpdatedAt   AssistantSortBy = "updated_at"
+	AssistantSortByAssistantID AssistantSortBy = "assistant_id" // The assistant ID
+	AssistantSortByGraphID     AssistantSortBy = "graph_id"     // The graph ID
+	AssistantSortByName        AssistantSortBy = "name"         // The name of the assistant
+	AssistantSortByCreatedAt   AssistantSortBy = "created_at"   // The time the assistant was created
+	AssistantSortByUpdatedAt   AssistantSortBy = "updated_at"   // The last time the assistant was updated
 )
 
 // The order to sort by.
 type SortOrder string
 
 const (
-	SortOrderAsc  SortOrder = "asc"
-	SortOrderDesc SortOrder = "desc"
+	SortOrderAsc  SortOrder = "asc"  // Ascending order
+	SortOrderDesc SortOrder = "desc" // Descending order
 )
 
 // The field to sort by.
 type ThreadSortBy string
 
 const (
-	ThreadSortByThreadID  ThreadSortBy = "thread_id"
-	ThreadSortByStatus    ThreadSortBy = "status"
-	ThreadSortByCreatedAt ThreadSortBy = "created_at"
-	ThreadSortByUpdatedAt ThreadSortBy = "updated_at"
+	ThreadSortByThreadID  ThreadSortBy = "thread_id"  // The thread ID
+	ThreadSortByStatus    ThreadSortBy = "status"     // The status of the thread
+	ThreadSortByCreatedAt ThreadSortBy = "created_at" // The time the thread was created
+	ThreadSortByUpdatedAt ThreadSortBy = "updated_at" // The last time the thread was updated
 )
